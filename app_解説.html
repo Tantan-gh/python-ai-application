@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Streamlit × Gemini API で作る AIライティングツール — app.py のコードを読み解く</title>
+  <style>
+    body {
+      font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+      line-height: 1.8;
+      color: #333;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      background: #fafafa;
+    }
+    h1 {
+      font-size: 1.8rem;
+      border-bottom: 3px solid #4CAF50;
+      padding-bottom: 0.5rem;
+      margin-bottom: 2rem;
+    }
+    h2 {
+      font-size: 1.3rem;
+      margin-top: 2.5rem;
+      padding: 0.4rem 0.8rem;
+      background: #e8f5e9;
+      border-left: 4px solid #4CAF50;
+      border-radius: 0 4px 4px 0;
+    }
+    p { margin: 1rem 0; }
+    ul { padding-left: 1.5rem; }
+    li { margin: 0.4rem 0; }
+    pre {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 1.2rem 1.5rem;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+    code {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    }
+    p code, li code {
+      background: #eee;
+      padding: 0.1em 0.4em;
+      border-radius: 3px;
+      font-size: 0.88em;
+      color: #c7254e;
+    }
+    .flow-box {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 1.2rem 1.5rem;
+      font-family: monospace;
+      font-size: 0.95rem;
+      line-height: 2;
+      margin: 1rem 0;
+    }
+    .flow-box span.arrow { color: #4CAF50; font-weight: bold; }
+    .flow-box span.label { color: #888; font-size: 0.85rem; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.2rem 0;
+    }
+    th {
+      background: #4CAF50;
+      color: #fff;
+      padding: 0.6rem 1rem;
+      text-align: left;
+    }
+    td {
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid #ddd;
+    }
+    tr:nth-child(even) td { background: #f5f5f5; }
+    .section-num {
+      display: inline-block;
+      background: #4CAF50;
+      color: #fff;
+      border-radius: 50%;
+      width: 1.6rem;
+      height: 1.6rem;
+      text-align: center;
+      line-height: 1.6rem;
+      font-size: 0.9rem;
+      margin-right: 0.4rem;
+    }
+    footer {
+      margin-top: 3rem;
+      padding-top: 1rem;
+      border-top: 1px solid #ddd;
+      font-size: 0.85rem;
+      color: #888;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Streamlit × Gemini API で作る AIライティングツール<br><small style="font-size:0.6em;color:#666;">— app.py のコードを読み解く</small></h1>
+
+  <h2><span class="section-num">0</span> このファイルの役割</h2>
+  <p>
+    <code>app.py</code> はアプリの<strong>画面と操作のすべてを担う</strong>メインファイルです。
+    ユーザーがブラウザで見るUI、ボタンを押したときの動作、AIへの指示の受け渡しまで、ここに集約されています。
+  </p>
+
+  <h2><span class="section-num">1</span> 必要なものを読み込む（インポート）</h2>
+  <pre><code>import streamlit as st
+from tools.blog_writer import write_blog
+from tools.email_reply import generate_email_reply
+...</code></pre>
+  <ul>
+    <li><code>streamlit</code> — 画面を作るライブラリ。<code>st.button()</code> や <code>st.text_input()</code> でUIパーツを置けます</li>
+    <li><code>tools/</code> 以下の各ファイル — ツールごとのAI処理ロジック。<code>app.py</code> はUIだけ担当し、AI処理は各ツールファイルに分離されています</li>
+  </ul>
+
+  <h2><span class="section-num">2</span> ページの基本設定</h2>
+  <pre><code>st.set_page_config(
+    page_title="AI ライティングツール",
+    page_icon="✍️",
+    layout="wide",
+)</code></pre>
+  <p>ブラウザのタブに表示されるタイトルやアイコン、レイアウトをここで設定します。<code>layout="wide"</code> で画面幅いっぱいに使えます。</p>
+
+  <h2><span class="section-num">3</span> ツール一覧の定義</h2>
+  <pre><code>TOOLS = {
+    "📝 ブログ記事作成": "blog",
+    "📧 メール返信文生成": "email",
+    "📋 文章要約": "summary",
+    ...
+}</code></pre>
+  <p>サイドバーに表示する<strong>ツール名（日本語）</strong>と<strong>内部的なキー</strong>の対応表です。新しいツールを追加するときはここに1行足すだけです。</p>
+
+  <h2><span class="section-num">4</span> サイドバー（左のメニュー）</h2>
+  <pre><code>with st.sidebar:
+    selected_label = st.radio("ツールを選択", list(TOOLS.keys()))</code></pre>
+  <p>
+    <code>st.sidebar</code> ブロックの中に書いたものは左側のパネルに表示されます。
+    <code>st.radio()</code> でラジオボタンを作り、ユーザーが選んだツール名を <code>selected_label</code> に受け取ります。
+  </p>
+
+  <h2><span class="section-num">5</span> ツールの切り替え（画面の分岐）</h2>
+  <pre><code>tool = TOOLS[selected_label]  # 例: "blog"
+
+if tool == "blog":
+    # ブログ記事作成の画面
+elif tool == "email":
+    # メール返信の画面
+elif tool == "summary":
+    # 要約の画面
+...</code></pre>
+  <p>
+    Streamlit はボタンを押すたびに<strong>スクリプト全体を上から再実行</strong>します。
+    そのため、選ばれたツールに応じた <code>if/elif</code> で表示する画面を切り替えています。
+    ページ遷移の仕組みが不要な、Streamlit らしいシンプルな設計です。
+  </p>
+
+  <h2><span class="section-num">6</span> 各ツール画面の構造（ブログ記事を例に）</h2>
+  <pre><code>if tool == "blog":
+    # ① 入力欄
+    topic = st.text_input("記事のテーマ")
+    tone  = st.selectbox("文体", ["フレンドリー", "丁寧", ...])
+
+    # ② ボタン（topicが空なら押せない）
+    if st.button("記事を生成する", disabled=not topic):
+
+        # ③ AI処理
+        with st.spinner("生成中..."):
+            result = write_blog(topic, tone, ...)
+
+        # ④ 結果表示
+        st.markdown(result)
+        st.download_button("ダウンロード", result)</code></pre>
+  <p>
+    どのツールも <strong>①入力 → ②ボタン → ③AI処理 → ④結果表示</strong> という同じ流れで作られています。
+    <code>st.spinner()</code> は処理中にくるくるアニメーションを出す仕組みです。
+  </p>
+
+  <h2><span class="section-num">7</span> AI処理の流れ全体像</h2>
+  <div class="flow-box">
+    app.py <span class="label">（UI）</span><br>
+    <span class="arrow">↓</span> ユーザーの入力を渡す<br>
+    tools/blog_writer.py <span class="label">（プロンプトを組み立てる）</span><br>
+    <span class="arrow">↓</span><br>
+    utils/gemini_client.py <span class="label">（Gemini API を呼び出す）</span><br>
+    <span class="arrow">↓</span><br>
+    Gemini <span class="label">（テキスト生成）</span><br>
+    <span class="arrow">↓</span><br>
+    app.py <span class="label">（結果を画面に表示）</span>
+  </div>
+  <p>
+    <code>app.py</code> は<strong>受付窓口</strong>、<code>tools/</code> は<strong>作業指示書の作成</strong>、
+    <code>gemini_client.py</code> は<strong>AIへの電話係</strong>という役割分担になっています。
+  </p>
+
+  <h2>まとめ</h2>
+  <table>
+    <thead>
+      <tr><th>コード</th><th>役割</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>st.set_page_config()</code></td><td>ページの見た目の基本設定</td></tr>
+      <tr><td><code>TOOLS</code> 辞書</td><td>ツール一覧の管理</td></tr>
+      <tr><td><code>st.sidebar</code></td><td>左メニューの作成</td></tr>
+      <tr><td><code>if/elif</code> の分岐</td><td>選択されたツールの画面を表示</td></tr>
+      <tr><td><code>st.button()</code> + <code>st.spinner()</code></td><td>ボタン押下とローディング表示</td></tr>
+      <tr><td><code>tools/*.py</code> の関数呼び出し</td><td>AIへの処理依頼</td></tr>
+    </tbody>
+  </table>
+  <p>
+    Streamlit の特徴である「<strong>ボタンを押すたびにスクリプト全体が再実行される</strong>」という動作を理解すると、このコードの構造がすっきり見えてきます。
+  </p>
+
+  <footer>Powered by Streamlit &amp; Gemini API</footer>
+
+</body>
+</html>
