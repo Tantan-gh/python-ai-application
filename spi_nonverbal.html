@@ -1,0 +1,1496 @@
+<title>SPI非言語 問題集</title>
+
+<style>
+  :root {
+    --bg:        #EDF0F5;
+    --surface:   #FFFFFF;
+    --surface-2: #F5F7FA;
+    --ink:       #16233C;
+    --ink-2:     #5A6885;
+    --ink-3:     #8A97AF;
+    --line:      #D2DAE6;
+    --line-soft: #E3E9F1;
+    --accent:    #22376F;
+    --accent-2:  #3D5FA8;
+    --accent-bg: #E5EAF5;
+    --ok:        #1B7A5A;
+    --ok-bg:     #E3F1EB;
+    --ng:        #B23A2E;
+    --ng-bg:     #F7E5E2;
+    --grid:      rgba(34, 55, 111, .07);
+    --on-accent: #FFFFFF;
+    --shadow:    0 1px 2px rgba(22, 35, 60, .05), 0 8px 24px -16px rgba(22, 35, 60, .35);
+
+    --mincho: "Hiragino Mincho ProN", "HiraMinProN-W3", "Yu Mincho", YuMincho, "Noto Serif JP", "Songti SC", serif;
+    --gothic: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Yu Gothic", YuGothic, "Noto Sans JP", "Segoe UI", Roboto, sans-serif;
+    --mono:   ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Roboto Mono", monospace;
+
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:        #0E1420;
+      --surface:   #161E2C;
+      --surface-2: #1C2536;
+      --ink:       #E5EAF3;
+      --ink-2:     #9AA6BC;
+      --ink-3:     #6E7C95;
+      --line:      #2B3549;
+      --line-soft: #222C3D;
+      --accent:    #8FAEE8;
+      --accent-2:  #A8C0EF;
+      --accent-bg: #1E2A42;
+      --ok:        #4FBF95;
+      --ok-bg:     #122C25;
+      --ng:        #E4816F;
+      --ng-bg:     #2E1A17;
+      --grid:      rgba(143, 174, 232, .08);
+      --on-accent: #0E1420;
+      --shadow:    0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px -16px rgba(0, 0, 0, .8);
+      color-scheme: dark;
+    }
+  }
+
+  :root[data-theme="light"] {
+    --bg:#EDF0F5; --surface:#FFFFFF; --surface-2:#F5F7FA;
+    --ink:#16233C; --ink-2:#5A6885; --ink-3:#8A97AF;
+    --line:#D2DAE6; --line-soft:#E3E9F1;
+    --accent:#22376F; --accent-2:#3D5FA8; --accent-bg:#E5EAF5;
+    --ok:#1B7A5A; --ok-bg:#E3F1EB; --ng:#B23A2E; --ng-bg:#F7E5E2;
+    --grid:rgba(34,55,111,.07); --on-accent:#FFFFFF;
+    --shadow:0 1px 2px rgba(22,35,60,.05), 0 8px 24px -16px rgba(22,35,60,.35);
+    color-scheme: light;
+  }
+
+  :root[data-theme="dark"] {
+    --bg:#0E1420; --surface:#161E2C; --surface-2:#1C2536;
+    --ink:#E5EAF3; --ink-2:#9AA6BC; --ink-3:#6E7C95;
+    --line:#2B3549; --line-soft:#222C3D;
+    --accent:#8FAEE8; --accent-2:#A8C0EF; --accent-bg:#1E2A42;
+    --ok:#4FBF95; --ok-bg:#122C25; --ng:#E4816F; --ng-bg:#2E1A17;
+    --grid:rgba(143,174,232,.08); --on-accent:#0E1420;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -16px rgba(0,0,0,.8);
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--gothic);
+    font-size: 16px;
+    line-height: 1.75;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  .app {
+    max-width: 42rem;
+    margin: 0 auto;
+    padding: 0 1rem 7rem;
+  }
+
+  /* ── 上部バー ───────────────────────────── */
+  .bar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    margin: 0 -1rem;
+    padding: .55rem 1rem .45rem;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .bar-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+  }
+  .bar-title {
+    font-family: var(--mincho);
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: .06em;
+    margin: 0;
+  }
+  .bar-meta {
+    display: flex;
+    align-items: center;
+    gap: .9rem;
+    font-family: var(--mono);
+    font-size: .78rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-2);
+  }
+  .bar-meta b { color: var(--ink); font-weight: 600; }
+  .rule {
+    height: 3px;
+    margin-top: .45rem;
+    background: var(--line-soft);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .rule span {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: var(--accent);
+    transition: width .3s ease;
+  }
+  @media (prefers-reduced-motion: reduce) { .rule span { transition: none; } }
+
+  .theme-btn {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink-2);
+    border-radius: 999px;
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    flex: none;
+    padding: 0;
+  }
+  .theme-btn svg { width: 15px; height: 15px; display: block; }
+
+  /* ── 共通パーツ ─────────────────────────── */
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .7rem;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 .35rem;
+  }
+  h2.head {
+    font-family: var(--mincho);
+    font-size: 1.45rem;
+    line-height: 1.45;
+    font-weight: 600;
+    letter-spacing: .02em;
+    margin: 0 0 .3rem;
+    text-wrap: balance;
+  }
+  .lede { color: var(--ink-2); font-size: .92rem; margin: 0; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 1.1rem;
+    box-shadow: var(--shadow);
+  }
+
+  section.block { margin-top: 1.5rem; }
+  .block-label {
+    font-family: var(--mono);
+    font-size: .72rem;
+    letter-spacing: .14em;
+    color: var(--ink-3);
+    margin: 0 0 .55rem;
+    display: flex;
+    align-items: baseline;
+    gap: .6rem;
+  }
+  .block-label::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--line-soft);
+  }
+
+  .chips { display: flex; flex-wrap: wrap; gap: .5rem; }
+  .chip {
+    font-family: inherit;
+    font-size: .85rem;
+    padding: .5rem .8rem;
+    min-height: 40px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink-2);
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+  }
+  .chip .n {
+    font-family: var(--mono);
+    font-size: .7rem;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+  .chip[aria-pressed="true"] {
+    background: var(--accent-bg);
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .chip[aria-pressed="true"] .n { color: var(--accent); }
+
+  .seg { display: flex; gap: .5rem; }
+  .seg .chip { flex: 1; justify-content: center; }
+
+  .btn {
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    width: 100%;
+    min-height: 52px;
+    border-radius: 10px;
+    border: 1px solid var(--accent);
+    background: var(--accent);
+    color: var(--on-accent);
+    cursor: pointer;
+    letter-spacing: .04em;
+  }
+  .btn:disabled { opacity: .38; cursor: default; }
+  .btn.ghost {
+    background: var(--surface);
+    color: var(--ink-2);
+    border-color: var(--line);
+    font-weight: 500;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent-2);
+    outline-offset: 2px;
+  }
+
+  /* ── 学習記録 ───────────────────────────── */
+  .stat-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: .5rem;
+    padding: .45rem 0;
+    border-bottom: 1px dashed var(--line-soft);
+    font-size: .88rem;
+  }
+  .stat-row:last-child { border-bottom: 0; }
+  .stat-row .name { flex: none; width: 7.4em; font-size: .84rem; color: var(--ink-2); }
+  .meter {
+    flex: 1;
+    height: 6px;
+    background: var(--line-soft);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .meter span { display: block; height: 100%; background: var(--accent); }
+  .meter span.low { background: var(--ng); }
+  .meter span.mid { background: var(--accent-2); }
+  .stat-row .val {
+    font-family: var(--mono);
+    font-size: .8rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-2);
+    flex: none;
+    width: 5.2em;
+    text-align: right;
+  }
+  .summary-big {
+    display: flex;
+    align-items: baseline;
+    gap: .6rem;
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+  }
+  .summary-big .pct { font-size: 2.6rem; font-weight: 600; letter-spacing: -.02em; }
+  .summary-big .sub { font-size: .8rem; color: var(--ink-2); }
+
+  /* ── 問題 ───────────────────────────────── */
+  .qtag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: .7rem;
+    letter-spacing: .1em;
+    color: var(--accent);
+    background: var(--accent-bg);
+    border-radius: 4px;
+    padding: .15rem .5rem;
+    margin-bottom: .7rem;
+  }
+  .qcard {
+    background:
+      repeating-linear-gradient(to bottom, var(--grid) 0 1px, transparent 1px 22px),
+      repeating-linear-gradient(to right,  var(--grid) 0 1px, transparent 1px 22px),
+      var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 1.1rem;
+    box-shadow: var(--shadow);
+  }
+  .qtext { font-size: 1.02rem; line-height: 1.85; margin: 0; }
+  .qtext ul { margin: .7rem 0 0; padding-left: 1.2rem; }
+  .qtext li { margin: .2rem 0; }
+  .table-wrap { overflow-x: auto; margin-top: .9rem; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 20rem;
+    font-size: .85rem;
+    font-variant-numeric: tabular-nums;
+    background: var(--surface);
+  }
+  caption {
+    caption-side: top;
+    text-align: left;
+    font-family: var(--mono);
+    font-size: .72rem;
+    letter-spacing: .1em;
+    color: var(--ink-3);
+    padding-bottom: .35rem;
+  }
+  th, td { border: 1px solid var(--line); padding: .4rem .6rem; text-align: right; }
+  th { background: var(--surface-2); font-weight: 600; color: var(--ink-2); }
+  th:first-child, td:first-child { text-align: left; }
+
+  .choices { display: flex; flex-direction: column; gap: .55rem; margin-top: 1rem; }
+  .choice {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    width: 100%;
+    min-height: 52px;
+    padding: .6rem .8rem;
+    text-align: left;
+    font-family: inherit;
+    font-size: .97rem;
+    line-height: 1.6;
+    color: var(--ink);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  .choice .key {
+    flex: none;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    display: grid;
+    place-items: center;
+    font-family: var(--mono);
+    font-size: .75rem;
+    color: var(--ink-2);
+  }
+  .choice[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-bg); }
+  .choice[aria-pressed="true"] .key { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
+
+  .choice.is-ok { border-color: var(--ok); background: var(--ok-bg); }
+  .choice.is-ok .key { border-color: var(--ok); background: var(--ok); color: var(--on-accent); }
+  .choice.is-ng { border-color: var(--ng); background: var(--ng-bg); }
+  .choice.is-ng .key { border-color: var(--ng); background: var(--ng); color: var(--on-accent); }
+  .choice[disabled] { cursor: default; }
+  .choice .mark { margin-left: auto; font-size: 1.1rem; flex: none; }
+  .choice.is-ok .mark { color: var(--ok); }
+  .choice.is-ng .mark { color: var(--ng); }
+
+  /* ── メモ ───────────────────────────────── */
+  details.memo { margin-top: .9rem; }
+  details.memo summary {
+    font-family: var(--mono);
+    font-size: .75rem;
+    letter-spacing: .1em;
+    color: var(--ink-3);
+    cursor: pointer;
+    padding: .35rem 0;
+    list-style: none;
+  }
+  details.memo summary::-webkit-details-marker { display: none; }
+  details.memo summary::before { content: "＋ "; }
+  details.memo[open] summary::before { content: "− "; }
+  textarea.pad {
+    width: 100%;
+    min-height: 7rem;
+    padding: .6rem;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: .9rem;
+    line-height: 22px;
+    resize: vertical;
+    background:
+      repeating-linear-gradient(to bottom, var(--grid) 0 1px, transparent 1px 22px),
+      repeating-linear-gradient(to right,  var(--grid) 0 1px, transparent 1px 22px),
+      var(--surface-2);
+  }
+
+  /* ── 解説 ───────────────────────────────── */
+  .verdict {
+    margin-top: 1rem;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    overflow: hidden;
+    animation: rise .22s ease-out;
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .verdict { animation: none; } }
+  .verdict-head {
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    padding: .6rem .9rem;
+    font-size: .9rem;
+    font-weight: 600;
+    letter-spacing: .04em;
+  }
+  .verdict.ok  .verdict-head { background: var(--ok-bg); color: var(--ok); }
+  .verdict.ng  .verdict-head { background: var(--ng-bg); color: var(--ng); }
+  .verdict-body { padding: .85rem .9rem 1rem; }
+  .verdict-body .exp-label {
+    font-family: var(--mono);
+    font-size: .7rem;
+    letter-spacing: .16em;
+    color: var(--ink-3);
+    display: block;
+    margin-bottom: .35rem;
+  }
+  .verdict-body p { margin: 0; font-size: .93rem; line-height: 1.85; }
+  .verdict-body .calc {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    background: var(--surface-2);
+    border-left: 2px solid var(--accent);
+    padding: .5rem .7rem;
+    margin-top: .7rem;
+    font-size: .85rem;
+    line-height: 1.7;
+    overflow-x: auto;
+    white-space: pre-wrap;
+  }
+
+  /* ── 下部固定バー ───────────────────────── */
+  .dock {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 30;
+    padding: .7rem 1rem calc(.7rem + env(safe-area-inset-bottom));
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--line-soft);
+  }
+  .dock-inner { max-width: 42rem; margin: 0 auto; display: flex; gap: .6rem; }
+  .dock .btn { flex: 1; }
+  .dock .btn.ghost { flex: 0 0 5.5rem; }
+
+  .hidden { display: none !important; }
+
+  /* ── 結果 ───────────────────────────────── */
+  .result-hero {
+    text-align: center;
+    padding: 1.6rem 1rem 1.4rem;
+  }
+  .result-hero .score {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 3.4rem;
+    line-height: 1;
+    font-weight: 600;
+    letter-spacing: -.03em;
+  }
+  .result-hero .score small { font-size: 1.2rem; color: var(--ink-3); font-weight: 400; }
+  .result-hero .comment {
+    font-family: var(--mincho);
+    font-size: 1.05rem;
+    margin: .8rem 0 0;
+    color: var(--ink-2);
+  }
+  .review-item {
+    border-top: 1px solid var(--line-soft);
+    padding: .8rem 0;
+    font-size: .9rem;
+  }
+  .review-item:first-child { border-top: 0; }
+  .review-item .rq { margin: .2rem 0 .4rem; color: var(--ink); }
+  .review-item .ra { font-size: .85rem; color: var(--ink-2); }
+  .review-item .ra b { color: var(--ok); }
+
+  footer.foot {
+    margin-top: 2.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--line-soft);
+    font-size: .75rem;
+    color: var(--ink-3);
+    line-height: 1.8;
+  }
+</style>
+
+<div class="app">
+  <div class="bar">
+    <div class="bar-row">
+      <h1 class="bar-title">SPI非言語 問題集</h1>
+      <div class="bar-meta">
+        <span id="m-count">全60問</span>
+        <span id="m-score" class="hidden"></span>
+        <button class="theme-btn" id="theme" type="button" aria-label="表示テーマを切り替える">
+          <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+            <circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/>
+            <path d="M8 1a7 7 0 0 1 0 14z" fill="currentColor"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="rule"><span id="rule-fill"></span></div>
+  </div>
+
+  <!-- ══ ホーム ══════════════════════════ -->
+  <main id="screen-home">
+    <section class="block">
+      <p class="eyebrow">非言語 · 12分野 · 60問</p>
+      <h2 class="head">分野を選んで、<span style="white-space:nowrap">10問</span>から始める。</h2>
+      <p class="lede">1問ずつ答え合わせと解説が出ます。まちがえた問題は自動で記録され、あとから復習できます。</p>
+    </section>
+
+    <section class="block">
+      <p class="block-label">出題分野</p>
+      <div class="chips" id="cat-chips"></div>
+      <div class="seg" style="margin-top:.6rem">
+        <button class="chip" type="button" id="cat-all">すべて選ぶ</button>
+        <button class="chip" type="button" id="cat-none">すべて外す</button>
+      </div>
+    </section>
+
+    <section class="block">
+      <p class="block-label">出題数</p>
+      <div class="seg" id="len-seg">
+        <button class="chip" type="button" data-len="10" aria-pressed="true">10問</button>
+        <button class="chip" type="button" data-len="20" aria-pressed="false">20問</button>
+        <button class="chip" type="button" data-len="0" aria-pressed="false">全問</button>
+      </div>
+    </section>
+
+    <section class="block" id="record-block">
+      <p class="block-label">学習記録</p>
+      <div class="card">
+        <div class="summary-big">
+          <span class="pct" id="rec-pct">—</span>
+          <span class="sub" id="rec-sub">まだ解答がありません</span>
+        </div>
+        <div id="rec-rows" style="margin-top:.8rem"></div>
+        <div style="margin-top:1rem; display:flex; gap:.6rem">
+          <button class="btn ghost" type="button" id="btn-wrong" style="font-size:.9rem; min-height:46px">まちがえた問題だけ</button>
+          <button class="btn ghost" type="button" id="btn-reset" style="flex:0 0 6rem; font-size:.85rem; min-height:46px">記録を消去</button>
+        </div>
+      </div>
+    </section>
+
+    <footer class="foot">
+      問題・解説はSPI非言語の頻出パターンをもとに作成した練習用オリジナル問題です。記録はこの端末のブラウザ内にだけ保存され、外部には送信されません。
+    </footer>
+  </main>
+
+  <!-- ══ 演習 ══════════════════════════════ -->
+  <main id="screen-quiz" class="hidden">
+    <section class="block">
+      <div class="qcard">
+        <span class="qtag" id="q-tag"></span>
+        <div class="qtext" id="q-text"></div>
+        <div id="q-table"></div>
+      </div>
+
+      <div class="choices" id="q-choices"></div>
+
+      <details class="memo">
+        <summary>計算メモ</summary>
+        <textarea class="pad" id="pad" spellcheck="false" aria-label="計算メモ"></textarea>
+      </details>
+
+      <div id="q-verdict"></div>
+    </section>
+  </main>
+
+  <!-- ══ 結果 ══════════════════════════════ -->
+  <main id="screen-result" class="hidden">
+    <section class="block">
+      <div class="card result-hero">
+        <p class="eyebrow">今回の成績</p>
+        <p class="score" id="res-score"></p>
+        <p class="comment" id="res-comment"></p>
+      </div>
+    </section>
+
+    <section class="block" id="res-cat-block">
+      <p class="block-label">分野別</p>
+      <div class="card" id="res-cats"></div>
+    </section>
+
+    <section class="block hidden" id="res-review-block">
+      <p class="block-label">まちがえた問題</p>
+      <div class="card" id="res-review"></div>
+    </section>
+  </main>
+</div>
+
+<div class="dock hidden" id="dock">
+  <div class="dock-inner" id="dock-inner"></div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ══ 分野 ══════════════════════════════════════════ */
+  const CATS = [
+    ["suiron",   "推論"],
+    ["baai",     "場合の数"],
+    ["kakuritsu","確率"],
+    ["wariai",   "割合と比"],
+    ["soneki",   "損益算"],
+    ["shigoto",  "仕事算"],
+    ["hayasa",   "速さ"],
+    ["shugo",    "集合"],
+    ["hyou",     "表の読み取り"],
+    ["waribiki", "料金の割引"],
+    ["bunkatsu", "分割払い・精算"],
+    ["noudo",    "濃度算"]
+  ];
+  const CAT_NAME = Object.fromEntries(CATS);
+
+  const SALES_TABLE = `
+    <div class="table-wrap"><table>
+      <caption>4店舗の年間売上（単位：万円）</caption>
+      <thead><tr><th>店舗</th><th>2023年</th><th>2024年</th></tr></thead>
+      <tbody>
+        <tr><td>A店</td><td>1,200</td><td>1,380</td></tr>
+        <tr><td>B店</td><td>900</td><td>810</td></tr>
+        <tr><td>C店</td><td>1,500</td><td>1,650</td></tr>
+        <tr><td>D店</td><td>600</td><td>690</td></tr>
+      </tbody>
+    </table></div>`;
+
+  /* ══ 問題データ ════════════════════════════════════ */
+  const Q = [
+    /* ── 推論 ─────────────────────────────── */
+    { id:"su1", cat:"suiron",
+      q:`P、Q、R、S、Tの5人が1列に並んでいる。次のことがわかっているとき、確実にいえるものはどれか。
+        <ul><li>PはQの2つ前にいる</li><li>RはSより後ろにいる</li><li>TはPより前にいる</li></ul>`,
+      c:["Tは必ず先頭である","RはPより後ろにいる","SはTより前にいる","Qは必ず5番目である","PとRは隣り合っている"],
+      a:1,
+      e:`Pの位置をpとするとQはp+2。TがPより前なのでp≧2、Qが5番目までなのでp≦3。
+         p=2のとき T,P,S,Q,R。p=3のときは T,S,P,R,Q と S,T,P,R,Q の2通り。
+         この3通りすべてでRはPより後ろにいる。`,
+      calc:`① T P S Q R\n② T S P R Q\n③ S T P R Q\n→ どの並びでも P より R が後ろ` },
+
+    { id:"su2", cat:"suiron",
+      q:`A〜Eの5人の身長について、次のことがわかっている。このとき、2番目に背が高いのは誰か。
+        <ul><li>AはBより高い</li><li>CはAより高い</li><li>DはBより低い</li><li>EはCより低く、Aより高い</li></ul>`,
+      c:["A","B","C","D","E"],
+      a:4,
+      e:`C＞A、C＞E＞A、A＞B＞D を合わせると C＞E＞A＞B＞D の順に決まる。したがって2番目はE。`,
+      calc:`C ＞ E ＞ A ＞ B ＞ D` },
+
+    { id:"su3", cat:"suiron",
+      q:`A、B、Cの3人が、赤・青・白の帽子を1つずつかぶっている。「Aは赤ではない」「Bは青ではない」「Cは赤ではない」とき、確実にいえることはどれか。`,
+      c:["Aは青である","Bは赤である","Cは白である","Aは白である","Cは青である"],
+      a:1,
+      e:`赤をかぶれるのはAでもCでもないのでBに決まる。BはAでもCでもない残りとして赤。
+         AとCは青か白のどちらかだが、どちらがどちらかは決まらない。`,
+      calc:`赤 → A×・C× ⇒ B\nA, C は 青／白 のいずれか（確定しない）` },
+
+    { id:"su4", cat:"suiron",
+      q:`A〜Dの4チームが総当たり戦（各チーム3試合、引き分けなし）を行った。「Aは全勝した」「BはCに勝った」「DはBに勝った」とき、確実にいえるものはどれか。`,
+      c:["Aが単独1位である","Dは2勝している","Cは全敗である","BとDの勝ち数は同じである","Cが単独最下位である"],
+      a:0,
+      e:`Aは3勝。Bは A に負け・C に勝ち・D に負けで1勝。DとCの対戦結果は不明で、Dが2勝Cが0勝の場合と、Dが1勝Cが1勝の場合の両方があり得る。
+         いずれにせよ他チームは最大2勝なので、Aの単独1位だけが確実。`,
+      calc:`A=3勝\nB=1勝（○C ×A ×D）\nC・Dの対戦は不明 → D=2,C=0 または D=1,C=1` },
+
+    { id:"su5", cat:"suiron",
+      q:`円卓にA〜Fの6人が等間隔で座っている。「AとDは向かい合っている」「BはAの隣に座っている」「CはDの隣で、Bと向かい合っている」とき、確実にいえるものはどれか。`,
+      c:["Bの両隣はAとCである","EとFは向かい合っている","DとBは隣り合っている","Aの両隣はBとEである","CはAの隣である"],
+      a:1,
+      e:`席を1〜6とし、A=1、D=4とする。BはAの隣で2か6。Bの向かいがCで、B=2ならC=5、B=6ならC=3。どちらもCはDの隣になり条件を満たす。
+         残る2席はどちらの場合も向かい合う位置（3と6、または2と5）なので、EとFは必ず向かい合う。`,
+      calc:`① A1 B2 E/F3 D4 C5 E/F6\n② A1 E/F2 C3 D4 E/F5 B6\nどちらも残り2席は向かい合わせ` },
+
+    /* ── 場合の数 ─────────────────────────── */
+    { id:"ba1", cat:"baai",
+      q:`男子4人、女子3人の合計7人の中から、委員を3人選ぶ。選び方は何通りあるか。`,
+      c:["21通り","30通り","35通り","42通り","210通り"],
+      a:2,
+      e:`7人から3人を選ぶ組合せなので ₇C₃。順番は関係ないので順列ではないことに注意。`,
+      calc:`₇C₃ = (7×6×5)/(3×2×1) = 35 通り` },
+
+    { id:"ba2", cat:"baai",
+      q:`男子4人、女子3人の中から、男子2人と女子1人を選ぶ。選び方は何通りあるか。`,
+      c:["12通り","18通り","24通り","36通り","72通り"],
+      a:1,
+      e:`男子の選び方と女子の選び方は独立なので、それぞれの組合せの積で求める。`,
+      calc:`₄C₂ × ₃C₁ = 6 × 3 = 18 通り` },
+
+    { id:"ba3", cat:"baai",
+      q:`A〜Eの5人が1列に並ぶとき、AとBが隣り合う並び方は何通りあるか。`,
+      c:["24通り","48通り","60通り","96通り","120通り"],
+      a:1,
+      e:`AとBをひとかたまりとみなすと4つのものの並べ方。さらにかたまりの中でAとBの順序が2通り。`,
+      calc:`4! × 2 = 24 × 2 = 48 通り` },
+
+    { id:"ba4", cat:"baai",
+      q:`6人を3人ずつの2つの組に分ける方法は何通りあるか。`,
+      c:["10通り","15通り","20通り","30通り","40通り"],
+      a:0,
+      e:`6人から3人を選べば残りは自動的に決まる。ただし「組に区別がない」ため、同じ分け方を2回数えている分を2で割る。`,
+      calc:`₆C₃ ÷ 2 = 20 ÷ 2 = 10 通り` },
+
+    { id:"ba5", cat:"baai",
+      q:`0、1、2、3、4の数字が書かれた5枚のカードから3枚を選んで並べ、3桁の整数をつくる。整数は何個できるか。`,
+      c:["36個","40個","48個","60個","64個"],
+      a:2,
+      e:`百の位に0は使えないので4通り。残り4枚から十の位・一の位を並べるので4×3通り。`,
+      calc:`4 × 4 × 3 = 48 個` },
+
+    /* ── 確率 ─────────────────────────────── */
+    { id:"ka1", cat:"kakuritsu",
+      q:`赤玉3個、白玉5個が入った袋から、同時に2個取り出す。2個とも赤玉である確率はいくらか。`,
+      c:["1/28","3/28","3/16","9/64","1/4"],
+      a:1,
+      e:`全体の取り出し方は ₈C₂＝28通り。赤2個の選び方は ₃C₂＝3通り。`,
+      calc:`₃C₂ / ₈C₂ = 3 / 28` },
+
+    { id:"ka2", cat:"kakuritsu",
+      q:`大小2個のサイコロを同時に投げるとき、出た目の和が7になる確率はいくらか。`,
+      c:["1/12","5/36","1/6","7/36","1/4"],
+      a:2,
+      e:`目の出方は全部で36通り。和が7になるのは (1,6)(2,5)(3,4)(4,3)(5,2)(6,1) の6通り。`,
+      calc:`6 / 36 = 1/6` },
+
+    { id:"ka3", cat:"kakuritsu",
+      q:`赤玉3個、白玉5個が入った袋から同時に2個取り出す。少なくとも1個が赤玉である確率はいくらか。`,
+      c:["3/28","5/14","3/8","9/14","25/28"],
+      a:3,
+      e:`「少なくとも1個赤」の余事象は「2個とも白」。全体1から引くのが速い。`,
+      calc:`1 − ₅C₂/₈C₂ = 1 − 10/28 = 18/28 = 9/14` },
+
+    { id:"ka4", cat:"kakuritsu",
+      q:`Aが的に当てる確率は2/3、Bが当てる確率は1/2である。2人が1回ずつ撃つとき、少なくとも一方が当たる確率はいくらか。`,
+      c:["1/3","1/2","2/3","5/6","1/6"],
+      a:3,
+      e:`余事象は「2人とも外す」。Aが外す確率1/3、Bが外す確率1/2で、これらは独立。`,
+      calc:`1 − (1/3 × 1/2) = 1 − 1/6 = 5/6` },
+
+    { id:"ka5", cat:"kakuritsu",
+      q:`10本のくじの中に当たりが3本ある。A、Bの順に1本ずつ引き、引いたくじは戻さない。Bが当たる確率はいくらか。`,
+      c:["1/5","2/9","7/30","3/10","1/3"],
+      a:3,
+      e:`Aが当たった場合と外れた場合に分けて足す。結果として先に引いても後に引いても当たる確率は変わらない。`,
+      calc:`(3/10 × 2/9) + (7/10 × 3/9)\n = 6/90 + 21/90 = 27/90 = 3/10` },
+
+    /* ── 割合と比 ─────────────────────────── */
+    { id:"wa1", cat:"wariai",
+      q:`ある品物の定価は原価の4割増しである。原価が2,500円のとき、定価はいくらか。`,
+      c:["2,900円","3,000円","3,400円","3,500円","4,000円"],
+      a:3,
+      e:`4割増しは原価の1.4倍。`,
+      calc:`2,500 × 1.4 = 3,500 円` },
+
+    { id:"wa2", cat:"wariai",
+      q:`ある学校の男子と女子の人数の比は5:4で、全体は270人である。男子は何人か。`,
+      c:["120人","135人","144人","150人","162人"],
+      a:3,
+      e:`比の合計は5+4=9。全体を9等分した5つ分が男子。`,
+      calc:`270 × 5/9 = 150 人` },
+
+    { id:"wa3", cat:"wariai",
+      q:`ある学校の生徒の60%が男子で、その男子のうち25%が自転車通学である。自転車通学の男子は全体の何%か。`,
+      c:["12%","15%","18%","20%","25%"],
+      a:1,
+      e:`「〜のうちの〜%」は掛け算。基準がどちらかを取り違えないこと。`,
+      calc:`0.60 × 0.25 = 0.15 → 15 %` },
+
+    { id:"wa4", cat:"wariai",
+      q:`A:B = 3:4、B:C = 2:5 であるとき、A:B:C はいくらか。`,
+      c:["3:4:5","3:4:10","6:8:15","3:8:10","6:8:20"],
+      a:1,
+      e:`共通するBの値をそろえる。B=4に合わせると B:C = 2:5 は 4:10 になる。`,
+      calc:`A:B = 3:4\nB:C = 2:5 = 4:10\n→ A:B:C = 3:4:10` },
+
+    { id:"wa5", cat:"wariai",
+      q:`容器いっぱいに入っていた水を、1日目に全体の1/3、2日目に残りの1/4だけ使った。残っている水は全体のどれだけか。`,
+      c:["1/3","5/12","1/2","7/12","2/3"],
+      a:2,
+      e:`2日目の「残りの1/4」は全体の1/4ではないことに注意。1日目終了時の残り2/3が基準になる。`,
+      calc:`1日目後 : 1 − 1/3 = 2/3\n2日目使用 : 2/3 × 1/4 = 1/6\n残り : 2/3 − 1/6 = 1/2` },
+
+    /* ── 損益算 ───────────────────────────── */
+    { id:"so1", cat:"soneki",
+      q:`原価1,200円の商品に、原価の3割の利益を見込んで定価をつけた。定価はいくらか。`,
+      c:["1,320円","1,440円","1,500円","1,560円","1,620円"],
+      a:3,
+      e:`3割の利益を見込む＝原価の1.3倍を定価にする。`,
+      calc:`1,200 × 1.3 = 1,560 円` },
+
+    { id:"so2", cat:"soneki",
+      q:`定価2,000円の商品を15%引きで販売した。売価はいくらか。`,
+      c:["1,600円","1,650円","1,700円","1,750円","1,850円"],
+      a:2,
+      e:`15%引きは定価の85%。`,
+      calc:`2,000 × 0.85 = 1,700 円` },
+
+    { id:"so3", cat:"soneki",
+      q:`原価800円の商品に定価をつけたところ、定価の2割引で売っても原価の1割の利益が出た。定価はいくらか。`,
+      c:["1,000円","1,050円","1,100円","1,120円","1,200円"],
+      a:2,
+      e:`売価は原価の1.1倍＝880円。その売価が定価の0.8倍にあたる。`,
+      calc:`売価 = 800 × 1.1 = 880\n定価 × 0.8 = 880\n定価 = 880 ÷ 0.8 = 1,100 円` },
+
+    { id:"so4", cat:"soneki",
+      q:`ある商品を1,500円で仕入れ、2,100円で売った。原価に対する利益の割合は何%か。`,
+      c:["28.6%","30%","35%","40%","60%"],
+      a:3,
+      e:`利益率は「利益 ÷ 原価」。売価で割らないよう注意。`,
+      calc:`利益 = 2,100 − 1,500 = 600\n600 ÷ 1,500 = 0.4 → 40 %` },
+
+    { id:"so5", cat:"soneki",
+      q:`原価の4割増しの定価をつけたが売れなかったので、定価の3割引で売ったところ160円の損失となった。原価はいくらか。`,
+      c:["4,000円","5,000円","6,400円","8,000円","10,000円"],
+      a:3,
+      e:`売価は原価の 1.4 × 0.7 = 0.98 倍。原価との差0.02倍分が損失160円にあたる。`,
+      calc:`売価 = 原価 × 1.4 × 0.7 = 原価 × 0.98\n損失 = 原価 × 0.02 = 160\n原価 = 160 ÷ 0.02 = 8,000 円` },
+
+    /* ── 仕事算 ───────────────────────────── */
+    { id:"si1", cat:"shigoto",
+      q:`ある仕事をAだけで行うと12日、Bだけで行うと6日かかる。2人が一緒に行うと何日かかるか。`,
+      c:["4日","5日","6日","9日","18日"],
+      a:0,
+      e:`全体の仕事量を1として、1日あたりの仕事量を足す。`,
+      calc:`1/12 + 1/6 = 1/12 + 2/12 = 3/12 = 1/4\n1 ÷ 1/4 = 4 日` },
+
+    { id:"si2", cat:"shigoto",
+      q:`ある仕事をAだけで行うと20日かかり、AとBの2人で行うと12日かかる。Bだけで行うと何日かかるか。`,
+      c:["24日","28日","30日","32日","36日"],
+      a:2,
+      e:`2人の1日あたりの仕事量からAの分を引けばBの分が出る。`,
+      calc:`1/12 − 1/20 = 5/60 − 3/60 = 2/60 = 1/30\n1 ÷ 1/30 = 30 日` },
+
+    { id:"si3", cat:"shigoto",
+      q:`ある仕事を、まずAが6日行い、続けてBが8日行って完成した。この仕事をAだけで行うと10日かかる。Bだけで行うと何日かかるか。`,
+      c:["12日","16日","18日","20日","24日"],
+      a:3,
+      e:`Aが6日で終えた分を先に求め、残りをBが8日で片づけたと考える。`,
+      calc:`Aの分 = 6 × 1/10 = 3/5\n残り = 2/5 を8日 → 1日 = 1/20\n1 ÷ 1/20 = 20 日` },
+
+    { id:"si4", cat:"shigoto",
+      q:`空の水槽を満たすのに、A管だけでは30分、B管だけでは20分かかる。両方を同時に使うと何分かかるか。`,
+      c:["10分","12分","15分","18分","25分"],
+      a:1,
+      e:`1分あたりに入る量を足し合わせる。`,
+      calc:`1/30 + 1/20 = 2/60 + 3/60 = 5/60 = 1/12\n1 ÷ 1/12 = 12 分` },
+
+    { id:"si5", cat:"shigoto",
+      q:`12人で行うと15日かかる仕事がある。これを9日で終わらせるには何人必要か。`,
+      c:["16人","18人","20人","22人","24人"],
+      a:2,
+      e:`延べ仕事量（人日）は一定。全体の仕事量を人日で表してから割る。`,
+      calc:`12 × 15 = 180 人日\n180 ÷ 9 = 20 人` },
+
+    /* ── 速さ ─────────────────────────────── */
+    { id:"ha1", cat:"hayasa",
+      q:`時速72kmは秒速何mか。`,
+      c:["12m","15m","18m","20m","24m"],
+      a:3,
+      e:`1km=1,000m、1時間=3,600秒で換算する。時速を3.6で割ると秒速になる。`,
+      calc:`72 × 1,000 ÷ 3,600 = 20 m/秒` },
+
+    { id:"ha2", cat:"hayasa",
+      q:`家から駅までの1.8kmの道のりを、分速60mで歩いた。何分かかるか。`,
+      c:["18分","24分","30分","36分","45分"],
+      a:2,
+      e:`単位をmにそろえてから「道のり ÷ 速さ」。`,
+      calc:`1.8 km = 1,800 m\n1,800 ÷ 60 = 30 分` },
+
+    { id:"ha3", cat:"hayasa",
+      q:`長さ150mの列車が時速72kmで走り、長さ250mの鉄橋を渡り始めてから渡り終わるまでに何秒かかるか。`,
+      c:["12.5秒","15秒","20秒","25秒","30秒"],
+      a:2,
+      e:`「渡り終わる」までに進む距離は、鉄橋の長さ＋列車自身の長さ。`,
+      calc:`速さ = 72 km/h = 20 m/秒\n距離 = 250 + 150 = 400 m\n400 ÷ 20 = 20 秒` },
+
+    { id:"ha4", cat:"hayasa",
+      q:`A地点からB地点まで、行きは時速40km、帰りは時速60kmで往復した。往復の平均の速さは時速何kmか。`,
+      c:["時速45km","時速48km","時速50km","時速52km","時速55km"],
+      a:1,
+      e:`(40+60)÷2 ＝ 50 とするのは誤り。片道の距離を仮に置いて、総距離 ÷ 総時間で求める。`,
+      calc:`片道120kmとすると\n行き 120/40 = 3時間、帰り 120/60 = 2時間\n240 ÷ 5 = 時速 48 km` },
+
+    { id:"ha5", cat:"hayasa",
+      q:`弟が分速60mで家を出た。その10分後に兄が分速80mで同じ道を追いかけた。兄が弟に追いつくのは、兄が出発してから何分後か。`,
+      c:["20分後","25分後","30分後","35分後","40分後"],
+      a:2,
+      e:`兄が出発した時点での差と、1分あたりに縮まる差を求める。`,
+      calc:`最初の差 = 60 × 10 = 600 m\n1分に縮む差 = 80 − 60 = 20 m\n600 ÷ 20 = 30 分後` },
+
+    /* ── 集合 ─────────────────────────────── */
+    { id:"sh1", cat:"shugo",
+      q:`100人にアンケートをとったところ、犬を飼っている人が45人、猫を飼っている人が38人、どちらも飼っていない人が32人だった。両方飼っている人は何人か。`,
+      c:["7人","12人","15人","17人","20人"],
+      a:2,
+      e:`少なくとも一方を飼っている人数を先に出し、そこから重なりを求める。`,
+      calc:`少なくとも一方 = 100 − 32 = 68\n45 + 38 − 両方 = 68\n両方 = 83 − 68 = 15 人` },
+
+    { id:"sh2", cat:"shugo",
+      q:`50人の生徒のうち、英語が好きな人が30人、数学が好きな人が25人、両方好きな人が12人である。どちらも好きでない人は何人か。`,
+      c:["5人","7人","9人","10人","13人"],
+      a:1,
+      e:`和集合を求めてから全体から引く。`,
+      calc:`30 + 25 − 12 = 43\n50 − 43 = 7 人` },
+
+    { id:"sh3", cat:"shugo",
+      q:`200人にアンケートしたところ、商品Aを知っている人が120人、商品Bを知っている人が90人、両方を知っている人が40人だった。Aだけを知っている人は何人か。`,
+      c:["50人","60人","70人","80人","90人"],
+      a:3,
+      e:`「Aだけ」はAを知っている人から両方知っている人を引く。`,
+      calc:`120 − 40 = 80 人` },
+
+    { id:"sh4", cat:"shugo",
+      q:`100人のうち、A紙を購読している人が62人、B紙を購読している人が45人である。両方購読している人は、最も少なくて何人か。`,
+      c:["7人","17人","28人","38人","45人"],
+      a:0,
+      e:`重なりが最小になるのは、和集合が全体100人いっぱいまで広がるとき。`,
+      calc:`62 + 45 − 100 = 7 人` },
+
+    { id:"sh5", cat:"shugo",
+      q:`40人のクラスで、兄がいる人が18人、姉がいる人が15人、兄と姉の両方がいる人が6人である。兄も姉もいない人は何人か。`,
+      c:["7人","10人","13人","16人","19人"],
+      a:2,
+      e:`兄または姉がいる人数を求めて全体から引く。`,
+      calc:`18 + 15 − 6 = 27\n40 − 27 = 13 人` },
+
+    /* ── 表の読み取り ─────────────────────── */
+    { id:"hy1", cat:"hyou", table:SALES_TABLE,
+      q:`A店の2024年の売上は、前年に比べて何%増加したか。`,
+      c:["12%","13%","15%","18%","20%"],
+      a:2,
+      e:`増加率は「増加額 ÷ もとの年の売上」。基準は必ず前年（2023年）。`,
+      calc:`増加額 = 1,380 − 1,200 = 180\n180 ÷ 1,200 = 0.15 → 15 %` },
+
+    { id:"hy2", cat:"hyou", table:SALES_TABLE,
+      q:`2024年の4店舗の売上合計はいくらか。`,
+      c:["4,050万円","4,230万円","4,350万円","4,470万円","4,530万円"],
+      a:4,
+      e:`4店舗の2024年の数値を単純に合計する。`,
+      calc:`1,380 + 810 + 1,650 + 690 = 4,530 万円` },
+
+    { id:"hy3", cat:"hyou", table:SALES_TABLE,
+      q:`2024年の売上が前年より減少した店舗がある。その店舗の減少率は何%か。`,
+      c:["8%","9%","10%","11%","12%"],
+      a:2,
+      e:`減少しているのはB店（900→810）。減少率は減少額 ÷ 前年の売上。`,
+      calc:`減少額 = 900 − 810 = 90\n90 ÷ 900 = 0.10 → 10 %` },
+
+    { id:"hy4", cat:"hyou", table:SALES_TABLE,
+      q:`2024年の4店舗の売上合計に占めるC店の割合は、およそ何%か。`,
+      c:["約30%","約33%","約36%","約40%","約44%"],
+      a:2,
+      e:`合計4,530万円に対するC店1,650万円の比率を求める。`,
+      calc:`1,650 ÷ 4,530 ≒ 0.364 → 約 36 %` },
+
+    { id:"hy5", cat:"hyou", table:SALES_TABLE,
+      q:`2023年から2024年にかけて、売上の増加額が最も大きかった店舗はどれか。`,
+      c:["A店","B店","C店","D店","A店とC店で同じ"],
+      a:0,
+      e:`増加「率」ではなく増加「額」で比べる。C店は増加率では10%だが額では150万円。`,
+      calc:`A +180 / B −90 / C +150 / D +90（万円）\n最大は A店` },
+
+    /* ── 料金の割引 ───────────────────────── */
+    { id:"wb1", cat:"waribiki",
+      q:`ある施設の入場料は1人800円だが、20人を超えた分については2割引になる。35人で入場したときの合計金額はいくらか。`,
+      c:["22,400円","24,000円","25,600円","26,400円","28,000円"],
+      a:2,
+      e:`最初の20人分は定価、残り15人分だけ2割引になる。全員が割引になるわけではない。`,
+      calc:`20 × 800 = 16,000\n15 × 640 = 9,600\n合計 25,600 円` },
+
+    { id:"wb2", cat:"waribiki",
+      q:`あるサービスは基本料金1,500円で、10回を超えた利用1回につき200円が加算される。18回利用したときの料金はいくらか。`,
+      c:["2,600円","3,100円","3,300円","3,600円","5,100円"],
+      a:1,
+      e:`加算されるのは10回を超えた8回分のみ。`,
+      calc:`1,500 + (18 − 10) × 200\n= 1,500 + 1,600 = 3,100 円` },
+
+    { id:"wb3", cat:"waribiki",
+      q:`定価1,200円の本は、3冊以上まとめて買うと合計金額から15%引きになる。5冊買うといくらか。`,
+      c:["4,800円","5,100円","5,280円","5,400円","5,700円"],
+      a:1,
+      e:`まず定価での合計を出し、その全体に割引を適用する。`,
+      calc:`1,200 × 5 = 6,000\n6,000 × 0.85 = 5,100 円` },
+
+    { id:"wb4", cat:"waribiki",
+      q:`ある団体料金は、30人までは1人1,000円、31人目からは1人700円である。48人の団体の合計金額はいくらか。`,
+      c:["33,600円","38,400円","41,400円","42,600円","48,000円"],
+      a:3,
+      e:`30人分と、超過した18人分を分けて計算する。`,
+      calc:`30 × 1,000 = 30,000\n18 × 700 = 12,600\n合計 42,600 円` },
+
+    { id:"wb5", cat:"waribiki",
+      q:`ある施設は、会員なら年会費3,000円を払ったうえで1回600円、非会員は1回1,000円で利用できる。年に何回以上利用すると、会員のほうが安くなるか。`,
+      c:["6回","7回","8回","9回","10回"],
+      a:2,
+      e:`利用回数をn回として不等式を立てる。7.5回を超えるので、整数では8回から。`,
+      calc:`3,000 + 600n ＜ 1,000n\n3,000 ＜ 400n\nn ＞ 7.5 → 8 回以上` },
+
+    /* ── 分割払い・精算 ───────────────────── */
+    { id:"bu1", cat:"bunkatsu",
+      q:`30万円の商品を、頭金として代金の1/5を支払い、残額を10回の均等分割で支払う。1回あたりの支払額はいくらか。`,
+      c:["20,000円","24,000円","25,000円","28,000円","30,000円"],
+      a:1,
+      e:`頭金を引いた残額を回数で割る。代金全体を10で割らないこと。`,
+      calc:`頭金 = 300,000 × 1/5 = 60,000\n残額 = 240,000\n240,000 ÷ 10 = 24,000 円` },
+
+    { id:"bu2", cat:"bunkatsu",
+      q:`A、B、Cの3人で旅行し、Aが宿泊費36,000円、Bが交通費21,000円、Cが食費9,000円を立て替えた。費用を3人で均等に負担するとき、CはAにいくら払えばよいか（BもAに不足分を払うものとする）。`,
+      c:["9,000円","11,000円","13,000円","14,000円","22,000円"],
+      a:2,
+      e:`まず1人あたりの負担額を求め、各自の立替額との差を見る。`,
+      calc:`合計 66,000 ÷ 3 = 22,000（1人分）\nA +14,000 / B −1,000 / C −13,000\nC → A へ 13,000 円` },
+
+    { id:"bu3", cat:"bunkatsu",
+      q:`代金の1/3を頭金として支払い、残額を6回の均等分割で支払う。1回あたりの支払額は代金全体のどれだけにあたるか。`,
+      c:["1/6","1/8","1/9","1/12","2/9"],
+      a:2,
+      e:`残額は全体の2/3。これを6等分する。`,
+      calc:`(2/3) ÷ 6 = 2/18 = 1/9` },
+
+    { id:"bu4", cat:"bunkatsu",
+      q:`ある品物を、頭金として代金の20%を支払い、残りを月々12,000円ずつ8回で払い終えた。この品物の代金はいくらか。`,
+      c:["96,000円","108,000円","115,200円","120,000円","144,000円"],
+      a:3,
+      e:`分割で支払った総額が代金の80%にあたる。`,
+      calc:`12,000 × 8 = 96,000（＝代金の80%）\n96,000 ÷ 0.8 = 120,000 円` },
+
+    { id:"bu5", cat:"bunkatsu",
+      q:`4人で食事をし、合計代金は18,400円だった。幹事が他の3人より2,000円多く負担するとき、幹事以外の3人は1人いくら払うことになるか。`,
+      c:["3,600円","4,100円","4,300円","4,600円","5,100円"],
+      a:1,
+      e:`3人の負担額をy円とすると、幹事は y+2,000 円。`,
+      calc:`3y + (y + 2,000) = 18,400\n4y = 16,400\ny = 4,100 円` },
+
+    /* ── 濃度算 ───────────────────────────── */
+    { id:"no1", cat:"noudo",
+      q:`8%の食塩水300gに含まれる食塩は何gか。`,
+      c:["16g","21g","24g","27g","30g"],
+      a:2,
+      e:`食塩の重さ＝食塩水の重さ×濃度。`,
+      calc:`300 × 0.08 = 24 g` },
+
+    { id:"no2", cat:"noudo",
+      q:`6%の食塩水200gに水を100g加えると、濃度は何%になるか。`,
+      c:["2%","3%","4%","4.5%","5%"],
+      a:2,
+      e:`水を加えても食塩の量は変わらない。分母だけが増える。`,
+      calc:`食塩 = 200 × 0.06 = 12 g\n12 ÷ (200 + 100) = 0.04 → 4 %` },
+
+    { id:"no3", cat:"noudo",
+      q:`10%の食塩水150gと4%の食塩水250gを混ぜると、濃度は何%になるか。`,
+      c:["5.5%","6%","6.25%","6.5%","7%"],
+      a:2,
+      e:`それぞれの食塩の量を足し、全体の重さで割る。`,
+      calc:`15 g + 10 g = 25 g\n25 ÷ 400 = 0.0625 → 6.25 %` },
+
+    { id:"no4", cat:"noudo",
+      q:`12%の食塩水400gから水を何g蒸発させると、16%の食塩水になるか。`,
+      c:["50g","80g","100g","120g","150g"],
+      a:2,
+      e:`蒸発するのは水だけなので、食塩の量48gは変わらない。16%になるときの全体の重さを先に求める。`,
+      calc:`食塩 = 400 × 0.12 = 48 g\n48 ÷ 0.16 = 300 g（全体）\n400 − 300 = 100 g 蒸発` },
+
+    { id:"no5", cat:"noudo",
+      q:`4%の食塩水400gに食塩を何g加えると、20%の食塩水になるか。`,
+      c:["60g","64g","72g","80g","96g"],
+      a:3,
+      e:`加えた食塩の分だけ、食塩の量も全体の重さも増えることに注意して式を立てる。`,
+      calc:`食塩 = 400 × 0.04 = 16 g\n(16 + x) ÷ (400 + x) = 0.2\n16 + x = 80 + 0.2x\n0.8x = 64 → x = 80 g` }
+  ];
+
+  const KEYS = ["A", "B", "C", "D", "E"];
+
+  /* ══ 保存データ ════════════════════════════════════ */
+  const STORE = "spi-nonverbal-v1";
+  let rec = { stats: {}, wrong: [] };
+  try {
+    const raw = localStorage.getItem(STORE);
+    if (raw) {
+      const p = JSON.parse(raw);
+      if (p && typeof p === "object") {
+        rec.stats = p.stats || {};
+        rec.wrong = Array.isArray(p.wrong) ? p.wrong : [];
+      }
+    }
+  } catch (err) { /* 保存が使えない環境ではその場だけの記録になる */ }
+
+  function save() {
+    try { localStorage.setItem(STORE, JSON.stringify(rec)); } catch (err) {}
+  }
+
+  /* ══ 状態 ══════════════════════════════════════════ */
+  let selectedCats = new Set(CATS.map(c => c[0]));
+  let quizLen = 10;
+  let list = [];
+  let idx = 0;
+  let picked = null;
+  let answered = false;
+  let session = [];
+
+  /* ══ DOM ═══════════════════════════════════════════ */
+  const $ = id => document.getElementById(id);
+  const screens = { home: $("screen-home"), quiz: $("screen-quiz"), result: $("screen-result") };
+  const dock = $("dock"), dockInner = $("dock-inner");
+
+  function show(name) {
+    Object.entries(screens).forEach(([k, el]) => el.classList.toggle("hidden", k !== name));
+    window.scrollTo(0, 0);
+  }
+
+  /* ══ テーマ切り替え ════════════════════════════════ */
+  $("theme").addEventListener("click", () => {
+    const root = document.documentElement;
+    const now = root.getAttribute("data-theme");
+    const dark = now ? now === "dark"
+      : window.matchMedia("(prefers-color-scheme: dark)").matches;
+    root.setAttribute("data-theme", dark ? "light" : "dark");
+  });
+
+  /* ══ ホーム ════════════════════════════════════════ */
+  function countFor(cat) { return Q.filter(q => q.cat === cat).length; }
+
+  function renderChips() {
+    const wrap = $("cat-chips");
+    wrap.innerHTML = "";
+    CATS.forEach(([key, label]) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "chip";
+      b.setAttribute("aria-pressed", selectedCats.has(key));
+      b.innerHTML = label + ' <span class="n">' + countFor(key) + "</span>";
+      b.addEventListener("click", () => {
+        if (selectedCats.has(key)) selectedCats.delete(key); else selectedCats.add(key);
+        b.setAttribute("aria-pressed", selectedCats.has(key));
+        updateHomeDock();
+      });
+      wrap.appendChild(b);
+    });
+  }
+
+  $("cat-all").addEventListener("click", () => {
+    selectedCats = new Set(CATS.map(c => c[0]));
+    renderChips(); updateHomeDock();
+  });
+  $("cat-none").addEventListener("click", () => {
+    selectedCats = new Set();
+    renderChips(); updateHomeDock();
+  });
+
+  $("len-seg").addEventListener("click", e => {
+    const b = e.target.closest("[data-len]");
+    if (!b) return;
+    quizLen = Number(b.dataset.len);
+    [...$("len-seg").children].forEach(c => c.setAttribute("aria-pressed", c === b));
+    updateHomeDock();
+  });
+
+  function pool() { return Q.filter(q => selectedCats.has(q.cat)); }
+
+  function renderRecord() {
+    let tot = 0, cor = 0;
+    CATS.forEach(([key]) => {
+      const s = rec.stats[key];
+      if (s) { tot += s.total; cor += s.correct; }
+    });
+    $("rec-pct").textContent = tot ? Math.round(cor / tot * 100) + "%" : "—";
+    $("rec-sub").textContent = tot ? cor + " / " + tot + " 問正解（累計）" : "まだ解答がありません";
+
+    const rows = $("rec-rows");
+    rows.innerHTML = "";
+    CATS.forEach(([key, label]) => {
+      const s = rec.stats[key];
+      if (!s || !s.total) return;
+      const p = Math.round(s.correct / s.total * 100);
+      const row = document.createElement("div");
+      row.className = "stat-row";
+      const cls = p < 50 ? "low" : (p < 80 ? "mid" : "");
+      row.innerHTML =
+        '<span class="name">' + label + '</span>' +
+        '<span class="meter"><span class="' + cls + '" style="width:' + p + '%"></span></span>' +
+        '<span class="val">' + p + '% ' + s.correct + '/' + s.total + '</span>';
+      rows.appendChild(row);
+    });
+    if (!rows.children.length) {
+      rows.innerHTML = '<p class="lede" style="font-size:.85rem;margin:0">解いた分野がここに並びます。</p>';
+    }
+
+    const bw = $("btn-wrong");
+    const n = rec.wrong.length;
+    bw.textContent = n ? "まちがえた問題だけ（" + n + "問）" : "まちがえた問題だけ";
+    bw.disabled = n === 0;
+    bw.style.opacity = n ? "1" : ".45";
+  }
+
+  $("btn-wrong").addEventListener("click", () => {
+    const ids = new Set(rec.wrong);
+    const l = Q.filter(q => ids.has(q.id));
+    if (l.length) start(shuffle(l));
+  });
+
+  $("btn-reset").addEventListener("click", () => {
+    if (!confirm("学習記録をすべて消去します。よろしいですか？")) return;
+    rec = { stats: {}, wrong: [] };
+    save();
+    renderRecord();
+  });
+
+  function updateHomeDock() {
+    const n = pool().length;
+    const take = quizLen === 0 ? n : Math.min(quizLen, n);
+    const btn = dockInner.querySelector(".btn");
+    if (!btn) return;
+    btn.disabled = n === 0;
+    btn.textContent = n === 0 ? "分野を1つ以上選んでください" : take + "問を始める";
+    $("m-count").textContent = "全" + Q.length + "問";
+  }
+
+  function homeDock() {
+    dockInner.innerHTML = "";
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "btn";
+    b.addEventListener("click", () => {
+      const p = shuffle(pool());
+      const take = quizLen === 0 ? p.length : Math.min(quizLen, p.length);
+      if (take) start(p.slice(0, take));
+    });
+    dockInner.appendChild(b);
+    dock.classList.remove("hidden");
+    updateHomeDock();
+  }
+
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  /* ══ 演習 ══════════════════════════════════════════ */
+  function start(l) {
+    list = l; idx = 0; session = [];
+    show("quiz");
+    renderQ();
+  }
+
+  function renderQ() {
+    const q = list[idx];
+    picked = null; answered = false;
+
+    $("q-tag").textContent = CAT_NAME[q.cat];
+    $("q-text").innerHTML = q.q;
+    $("q-table").innerHTML = q.table || "";
+    $("q-verdict").innerHTML = "";
+    $("pad").value = "";
+    document.querySelector("details.memo").open = false;
+
+    const box = $("q-choices");
+    box.innerHTML = "";
+    q.c.forEach((text, i) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "choice";
+      b.setAttribute("aria-pressed", "false");
+      b.innerHTML = '<span class="key">' + KEYS[i] + "</span><span>" + text + "</span>";
+      b.addEventListener("click", () => {
+        if (answered) return;
+        picked = i;
+        [...box.children].forEach((c, j) => c.setAttribute("aria-pressed", j === i));
+        quizDock();
+      });
+      box.appendChild(b);
+    });
+
+    $("m-count").textContent = (idx + 1) + " / " + list.length;
+    const nCor = session.filter(s => s.ok).length;
+    const sc = $("m-score");
+    sc.classList.toggle("hidden", session.length === 0);
+    sc.innerHTML = "正解 <b>" + nCor + "</b>";
+    $("rule-fill").style.width = (idx / list.length * 100) + "%";
+
+    quizDock();
+    window.scrollTo(0, 0);
+  }
+
+  function quizDock() {
+    dockInner.innerHTML = "";
+    const quit = document.createElement("button");
+    quit.type = "button";
+    quit.className = "btn ghost";
+    quit.textContent = "中断";
+    quit.addEventListener("click", () => { if (confirm("演習を中断してホームに戻りますか？")) toHome(); });
+
+    const main = document.createElement("button");
+    main.type = "button";
+    main.className = "btn";
+    if (!answered) {
+      main.textContent = "解答する";
+      main.disabled = picked === null;
+      main.addEventListener("click", grade);
+    } else {
+      main.textContent = idx + 1 < list.length ? "次の問題へ" : "結果を見る";
+      main.addEventListener("click", () => {
+        if (idx + 1 < list.length) { idx++; renderQ(); } else { finish(); }
+      });
+    }
+    dockInner.appendChild(quit);
+    dockInner.appendChild(main);
+  }
+
+  function grade() {
+    const q = list[idx];
+    answered = true;
+    const ok = picked === q.a;
+
+    const box = $("q-choices");
+    [...box.children].forEach((c, i) => {
+      c.disabled = true;
+      c.setAttribute("aria-pressed", "false");
+      if (i === q.a) {
+        c.classList.add("is-ok");
+        c.insertAdjacentHTML("beforeend", '<span class="mark">✓</span>');
+      } else if (i === picked) {
+        c.classList.add("is-ng");
+        c.insertAdjacentHTML("beforeend", '<span class="mark">✕</span>');
+      }
+    });
+
+    const v = document.createElement("div");
+    v.className = "verdict " + (ok ? "ok" : "ng");
+    v.innerHTML =
+      '<div class="verdict-head">' + (ok ? "✓ 正解" : "✕ 不正解　正解は " + KEYS[q.a]) + "</div>" +
+      '<div class="verdict-body">' +
+        '<span class="exp-label">解説</span>' +
+        "<p>" + q.e + "</p>" +
+        (q.calc ? '<div class="calc">' + q.calc + "</div>" : "") +
+      "</div>";
+    $("q-verdict").appendChild(v);
+
+    const s = rec.stats[q.cat] || (rec.stats[q.cat] = { correct: 0, total: 0 });
+    s.total++;
+    if (ok) {
+      s.correct++;
+      rec.wrong = rec.wrong.filter(id => id !== q.id);
+    } else if (!rec.wrong.includes(q.id)) {
+      rec.wrong.push(q.id);
+    }
+    save();
+
+    session.push({ q: q, ok: ok, picked: picked });
+    const nCor = session.filter(x => x.ok).length;
+    const sc = $("m-score");
+    sc.classList.remove("hidden");
+    sc.innerHTML = "正解 <b>" + nCor + "</b>";
+    $("rule-fill").style.width = ((idx + 1) / list.length * 100) + "%";
+
+    quizDock();
+    v.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  /* ══ 結果 ══════════════════════════════════════════ */
+  function finish() {
+    const n = session.length;
+    const cor = session.filter(s => s.ok).length;
+    const p = Math.round(cor / n * 100);
+
+    $("res-score").innerHTML = cor + '<small> / ' + n + " 問正解</small>";
+    $("res-comment").textContent =
+      p === 100 ? "全問正解。この分野はもう仕上がっています。" :
+      p >= 80   ? "安定して解けています。まちがえた型だけ押さえ直しましょう。" :
+      p >= 60   ? "解法は入っています。取りこぼした分野を重点的に。" :
+      p >= 40   ? "解き方の型がまだ定着していません。解説の式を追い直しましょう。" :
+                  "まずは1分野ずつ。解説の計算を書き写すところから始めましょう。";
+
+    const byCat = {};
+    session.forEach(s => {
+      const b = byCat[s.q.cat] || (byCat[s.q.cat] = { c: 0, t: 0 });
+      b.t++; if (s.ok) b.c++;
+    });
+    const cw = $("res-cats");
+    cw.innerHTML = "";
+    CATS.forEach(([key, label]) => {
+      const b = byCat[key];
+      if (!b) return;
+      const pc = Math.round(b.c / b.t * 100);
+      const cls = pc < 50 ? "low" : (pc < 80 ? "mid" : "");
+      const row = document.createElement("div");
+      row.className = "stat-row";
+      row.innerHTML =
+        '<span class="name">' + label + "</span>" +
+        '<span class="meter"><span class="' + cls + '" style="width:' + pc + '%"></span></span>' +
+        '<span class="val">' + b.c + "/" + b.t + "</span>";
+      cw.appendChild(row);
+    });
+
+    const wrongs = session.filter(s => !s.ok);
+    $("res-review-block").classList.toggle("hidden", wrongs.length === 0);
+    const rw = $("res-review");
+    rw.innerHTML = "";
+    wrongs.forEach(s => {
+      const d = document.createElement("div");
+      d.className = "review-item";
+      const plain = s.q.q.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+      d.innerHTML =
+        '<span class="qtag" style="margin:0">' + CAT_NAME[s.q.cat] + "</span>" +
+        '<p class="rq">' + (plain.length > 70 ? plain.slice(0, 70) + "…" : plain) + "</p>" +
+        '<p class="ra">あなたの解答：' + KEYS[s.picked] + "　／　正解：<b>" +
+          KEYS[s.q.a] + ". " + s.q.c[s.q.a] + "</b></p>";
+      rw.appendChild(d);
+    });
+
+    $("m-count").textContent = "結果";
+    $("m-score").classList.add("hidden");
+    $("rule-fill").style.width = "100%";
+
+    dockInner.innerHTML = "";
+    const again = document.createElement("button");
+    again.type = "button";
+    again.className = "btn";
+    if (wrongs.length) {
+      again.textContent = "まちがえた " + wrongs.length + " 問を解き直す";
+      again.addEventListener("click", () => start(shuffle(wrongs.map(s => s.q))));
+    } else {
+      again.textContent = "もう一度おなじ設定で";
+      again.addEventListener("click", () => {
+        const p2 = shuffle(pool());
+        const take = quizLen === 0 ? p2.length : Math.min(quizLen, p2.length);
+        if (take) start(p2.slice(0, take));
+      });
+    }
+    const home = document.createElement("button");
+    home.type = "button";
+    home.className = "btn ghost";
+    home.textContent = "ホーム";
+    home.addEventListener("click", toHome);
+
+    dockInner.appendChild(home);
+    dockInner.appendChild(again);
+    show("result");
+  }
+
+  function toHome() {
+    $("rule-fill").style.width = "0%";
+    $("m-score").classList.add("hidden");
+    renderRecord();
+    show("home");
+    homeDock();
+  }
+
+  /* ══ 起動 ══════════════════════════════════════════ */
+  renderChips();
+  renderRecord();
+  homeDock();
+})();
+</script>

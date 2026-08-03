@@ -24,6 +24,10 @@ app.py  →  tools/<tool>.py  →  utils/gemini_client.generate()  →  Gemini A
 
 **`app.py`** — single-file Streamlit UI. Tool selection is driven by the `TOOLS` dict (`label → key`). Each `key` maps to an `if/elif` block that renders inputs and calls the corresponding tool function. No routing library; Streamlit re-runs the entire script on each interaction.
 
+## Standalone pages
+
+`spi_nonverbal.html` — SPI非言語の練習問題集。Streamlit アプリとは独立した単一ファイルの静的ページで、ブラウザで直接開いて使う（スマートフォン向けレイアウト）。問題データは末尾の `<script>` 内の `Q` 配列に `{id, cat, q, c, a, e, calc}` 形式で定義されている。分野は同ファイル冒頭の `CATS` に定義。学習記録は `localStorage` の `spi-nonverbal-v1` に保存される。外部 CSS/JS/フォントは読み込まない。
+
 ## Adding a new tool
 
 1. Create `tools/<name>.py` with a function that accepts user inputs, builds a prompt, and returns `generate(prompt)`.
