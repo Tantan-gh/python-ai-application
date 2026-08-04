@@ -17,6 +17,8 @@
     --ok-bg:     #E3F1EB;
     --ng:        #B23A2E;
     --ng-bg:     #F7E5E2;
+    --na:        #8A6A16;
+    --na-bg:     #F5EDD9;
     --grid:      rgba(34, 55, 111, .07);
     --on-accent: #FFFFFF;
     --shadow:    0 1px 2px rgba(22, 35, 60, .05), 0 8px 24px -16px rgba(22, 35, 60, .35);
@@ -45,6 +47,8 @@
       --ok-bg:     #122C25;
       --ng:        #E4816F;
       --ng-bg:     #2E1A17;
+      --na:        #D9B75C;
+      --na-bg:     #2B2413;
       --grid:      rgba(143, 174, 232, .08);
       --on-accent: #0E1420;
       --shadow:    0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px -16px rgba(0, 0, 0, .8);
@@ -58,6 +62,7 @@
     --line:#D2DAE6; --line-soft:#E3E9F1;
     --accent:#22376F; --accent-2:#3D5FA8; --accent-bg:#E5EAF5;
     --ok:#1B7A5A; --ok-bg:#E3F1EB; --ng:#B23A2E; --ng-bg:#F7E5E2;
+    --na:#8A6A16; --na-bg:#F5EDD9;
     --grid:rgba(34,55,111,.07); --on-accent:#FFFFFF;
     --shadow:0 1px 2px rgba(22,35,60,.05), 0 8px 24px -16px rgba(22,35,60,.35);
     color-scheme: light;
@@ -69,6 +74,7 @@
     --line:#2B3549; --line-soft:#222C3D;
     --accent:#8FAEE8; --accent-2:#A8C0EF; --accent-bg:#1E2A42;
     --ok:#4FBF95; --ok-bg:#122C25; --ng:#E4816F; --ng-bg:#2E1A17;
+    --na:#D9B75C; --na-bg:#2B2413;
     --grid:rgba(143,174,232,.08); --on-accent:#0E1420;
     --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -16px rgba(0,0,0,.8);
     color-scheme: dark;
@@ -141,6 +147,14 @@
     transition: width .3s ease;
   }
   @media (prefers-reduced-motion: reduce) { .rule span { transition: none; } }
+
+  .timer { margin-top: .3rem; height: 4px; }
+  .timer span { transition: none; background: var(--accent-2); }
+  .timer span.warn { background: var(--na); }
+  .timer span.crit { background: var(--ng); }
+  .clock { font-variant-numeric: tabular-nums; }
+  .clock.warn { color: var(--na); }
+  .clock.crit { color: var(--ng); font-weight: 700; }
 
   .theme-btn {
     border: 1px solid var(--line);
@@ -390,6 +404,25 @@
   .choice .mark { margin-left: auto; font-size: 1.1rem; flex: none; }
   .choice.is-ok .mark { color: var(--ok); }
   .choice.is-ng .mark { color: var(--ng); }
+  .choice.is-na .mark { color: var(--na); }
+
+  .choice.unknown {
+    margin-top: .35rem;
+    border-style: dashed;
+    color: var(--ink-2);
+    font-size: .92rem;
+    min-height: 48px;
+  }
+  .choice.unknown .key { font-size: .9rem; }
+  .choice.unknown[aria-pressed="true"] {
+    border-style: solid;
+    border-color: var(--na);
+    background: var(--na-bg);
+    color: var(--na);
+  }
+  .choice.unknown[aria-pressed="true"] .key { border-color: var(--na); background: var(--na); color: var(--on-accent); }
+  .choice.unknown.is-na { border-style: solid; border-color: var(--na); background: var(--na-bg); color: var(--na); }
+  .choice.unknown.is-na .key { border-color: var(--na); background: var(--na); color: var(--on-accent); }
 
   /* ── メモ ───────────────────────────────── */
   details.memo { margin-top: .9rem; }
@@ -444,6 +477,7 @@
   }
   .verdict.ok  .verdict-head { background: var(--ok-bg); color: var(--ok); }
   .verdict.ng  .verdict-head { background: var(--ng-bg); color: var(--ng); }
+  .verdict.na  .verdict-head { background: var(--na-bg); color: var(--na); }
   .verdict-body { padding: .85rem .9rem 1rem; }
   .verdict-body .exp-label {
     font-family: var(--mono);
@@ -454,7 +488,7 @@
     margin-bottom: .35rem;
   }
   .verdict-body p { margin: 0; font-size: .93rem; line-height: 1.85; }
-  .verdict-body .calc {
+  .calc {
     font-family: var(--mono);
     font-variant-numeric: tabular-nums;
     background: var(--surface-2);
@@ -512,6 +546,66 @@
   .review-item .rq { margin: .2rem 0 .4rem; color: var(--ink); }
   .review-item .ra { font-size: .85rem; color: var(--ink-2); }
   .review-item .ra b { color: var(--ok); }
+  .review-item .ra em { font-style: normal; color: var(--na); }
+  .review-item details { margin-top: .5rem; }
+  .review-item summary {
+    font-family: var(--mono);
+    font-size: .72rem;
+    letter-spacing: .1em;
+    color: var(--ink-3);
+    cursor: pointer;
+    list-style: none;
+    padding: .25rem 0;
+  }
+  .review-item summary::-webkit-details-marker { display: none; }
+  .review-item summary::before { content: "＋ "; }
+  .review-item details[open] summary::before { content: "− "; }
+  .review-item .exp { font-size: .87rem; color: var(--ink-2); margin: 0; }
+
+  .badge {
+    display: inline-grid;
+    place-items: center;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    font-size: .75rem;
+    vertical-align: middle;
+    margin-right: .4rem;
+    color: var(--on-accent);
+  }
+  .badge.ok { background: var(--ok); }
+  .badge.ng { background: var(--ng); }
+  .badge.na { background: var(--na); }
+
+  .tally {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    background: var(--line-soft);
+    border: 1px solid var(--line-soft);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .tally div {
+    background: var(--surface);
+    padding: .7rem .8rem;
+  }
+  .tally .t-label {
+    display: block;
+    font-size: .75rem;
+    color: var(--ink-2);
+    letter-spacing: .04em;
+  }
+  .tally .t-val {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  .tally .t-val.ok { color: var(--ok); }
+  .tally .t-val.ng { color: var(--ng); }
+  .tally .t-val.na { color: var(--na); }
+  .tally .t-val small { font-size: .8rem; font-weight: 400; color: var(--ink-3); }
 
   footer.foot {
     margin-top: 2.5rem;
@@ -530,6 +624,7 @@
       <div class="bar-meta">
         <span id="m-count">全60問</span>
         <span id="m-score" class="hidden"></span>
+        <span id="m-clock" class="clock hidden"></span>
         <button class="theme-btn" id="theme" type="button" aria-label="表示テーマを切り替える">
           <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
             <circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/>
@@ -539,6 +634,7 @@
       </div>
     </div>
     <div class="rule"><span id="rule-fill"></span></div>
+    <div class="rule timer hidden" id="timer"><span id="timer-fill"></span></div>
   </div>
 
   <!-- ══ ホーム ══════════════════════════ -->
@@ -546,7 +642,27 @@
     <section class="block">
       <p class="eyebrow">非言語 · 12分野 · 60問</p>
       <h2 class="head">分野を選んで、<span style="white-space:nowrap">10問</span>から始める。</h2>
-      <p class="lede">1問ずつ答え合わせと解説が出ます。まちがえた問題は自動で記録され、あとから復習できます。</p>
+      <p class="lede">まちがえた問題は自動で記録され、あとから復習できます。あてずっぽうで当たっても力にならないので、迷ったら「わからない」を選んでください。</p>
+    </section>
+
+    <section class="block">
+      <p class="block-label">モード</p>
+      <div class="seg" id="mode-seg">
+        <button class="chip" type="button" data-mode="practice" aria-pressed="true">練習</button>
+        <button class="chip" type="button" data-mode="exam" aria-pressed="false">本番</button>
+      </div>
+      <p class="lede" id="mode-note" style="font-size:.82rem; margin-top:.5rem">
+        時間制限なし。1問ごとに答え合わせと解説が出ます。
+      </p>
+    </section>
+
+    <section class="block hidden" id="limit-block">
+      <p class="block-label">1問あたりの制限時間</p>
+      <div class="seg" id="limit-seg">
+        <button class="chip" type="button" data-sec="90" aria-pressed="false">90秒</button>
+        <button class="chip" type="button" data-sec="75" aria-pressed="true">75秒</button>
+        <button class="chip" type="button" data-sec="60" aria-pressed="false">60秒</button>
+      </div>
     </section>
 
     <section class="block">
@@ -617,13 +733,18 @@
       </div>
     </section>
 
+    <section class="block">
+      <p class="block-label">内訳</p>
+      <div class="tally" id="res-tally"></div>
+    </section>
+
     <section class="block" id="res-cat-block">
       <p class="block-label">分野別</p>
       <div class="card" id="res-cats"></div>
     </section>
 
     <section class="block hidden" id="res-review-block">
-      <p class="block-label">まちがえた問題</p>
+      <p class="block-label" id="res-review-label">まちがえた問題</p>
       <div class="card" id="res-review"></div>
     </section>
   </main>
@@ -1129,13 +1250,21 @@
   }
 
   /* ══ 状態 ══════════════════════════════════════════ */
+  const UNKNOWN = -1;   // 「わからない」
+  const TIMEUP  = -2;   // 時間切れ（本番モード）
+
   let selectedCats = new Set(CATS.map(c => c[0]));
   let quizLen = 10;
+  let mode = "practice";     // "practice" | "exam"
+  let limitSec = 75;
   let list = [];
   let idx = 0;
   let picked = null;
   let answered = false;
   let session = [];
+  let qStart = 0;
+  let sessionStart = 0;
+  let ticker = null;
 
   /* ══ DOM ═══════════════════════════════════════════ */
   const $ = id => document.getElementById(id);
@@ -1184,6 +1313,25 @@
   $("cat-none").addEventListener("click", () => {
     selectedCats = new Set();
     renderChips(); updateHomeDock();
+  });
+
+  $("mode-seg").addEventListener("click", e => {
+    const b = e.target.closest("[data-mode]");
+    if (!b) return;
+    mode = b.dataset.mode;
+    [...$("mode-seg").children].forEach(c => c.setAttribute("aria-pressed", c === b));
+    $("limit-block").classList.toggle("hidden", mode !== "exam");
+    $("mode-note").textContent = mode === "exam"
+      ? "1問ごとに制限時間があり、時間切れは自動で次へ進みます。解説は最後にまとめて確認します。"
+      : "時間制限なし。1問ごとに答え合わせと解説が出ます。";
+    updateHomeDock();
+  });
+
+  $("limit-seg").addEventListener("click", e => {
+    const b = e.target.closest("[data-sec]");
+    if (!b) return;
+    limitSec = Number(b.dataset.sec);
+    [...$("limit-seg").children].forEach(c => c.setAttribute("aria-pressed", c === b));
   });
 
   $("len-seg").addEventListener("click", e => {
@@ -1250,7 +1398,9 @@
     const btn = dockInner.querySelector(".btn");
     if (!btn) return;
     btn.disabled = n === 0;
-    btn.textContent = n === 0 ? "分野を1つ以上選んでください" : take + "問を始める";
+    btn.textContent = n === 0
+      ? "分野を1つ以上選んでください"
+      : (mode === "exam" ? "本番モードで" + take + "問" : take + "問を始める");
     $("m-count").textContent = "全" + Q.length + "問";
   }
 
@@ -1279,8 +1429,36 @@
   }
 
   /* ══ 演習 ══════════════════════════════════════════ */
+  function fmt(ms) {
+    const t = Math.max(0, Math.round(ms / 1000));
+    return Math.floor(t / 60) + ":" + String(t % 60).padStart(2, "0");
+  }
+
+  function stopTimer() {
+    if (ticker) { clearInterval(ticker); ticker = null; }
+  }
+
+  function startTimer() {
+    stopTimer();
+    if (mode !== "exam") return;
+    tick();
+    ticker = setInterval(tick, 200);
+  }
+
+  function tick() {
+    const left = limitSec * 1000 - (Date.now() - qStart);
+    const clock = $("m-clock"), fill = $("timer-fill");
+    const sec = Math.max(0, Math.ceil(left / 1000));
+    clock.textContent = "残り " + sec + "秒";
+    clock.className = "clock" + (sec <= 5 ? " crit" : sec <= 15 ? " warn" : "");
+    fill.style.width = Math.max(0, left / (limitSec * 1000) * 100) + "%";
+    fill.className = sec <= 5 ? "crit" : sec <= 15 ? "warn" : "";
+    if (left <= 0) { stopTimer(); commit(TIMEUP); }
+  }
+
   function start(l) {
     list = l; idx = 0; session = [];
+    sessionStart = Date.now();
     show("quiz");
     renderQ();
   }
@@ -1298,28 +1476,42 @@
 
     const box = $("q-choices");
     box.innerHTML = "";
-    q.c.forEach((text, i) => {
+
+    function makeChoice(val, key, text, extraClass) {
       const b = document.createElement("button");
       b.type = "button";
-      b.className = "choice";
+      b.className = "choice" + (extraClass ? " " + extraClass : "");
+      b.dataset.val = val;
       b.setAttribute("aria-pressed", "false");
-      b.innerHTML = '<span class="key">' + KEYS[i] + "</span><span>" + text + "</span>";
+      b.innerHTML = '<span class="key">' + key + "</span><span>" + text + "</span>";
       b.addEventListener("click", () => {
         if (answered) return;
-        picked = i;
-        [...box.children].forEach((c, j) => c.setAttribute("aria-pressed", j === i));
+        picked = val;
+        [...box.children].forEach(c => c.setAttribute("aria-pressed", Number(c.dataset.val) === val));
         quizDock();
       });
       box.appendChild(b);
-    });
+    }
+
+    q.c.forEach((text, i) => makeChoice(i, KEYS[i], text));
+    makeChoice(UNKNOWN, "?", "わからない", "unknown");
 
     $("m-count").textContent = (idx + 1) + " / " + list.length;
-    const nCor = session.filter(s => s.ok).length;
     const sc = $("m-score");
-    sc.classList.toggle("hidden", session.length === 0);
-    sc.innerHTML = "正解 <b>" + nCor + "</b>";
+    if (mode === "exam") {
+      sc.classList.add("hidden");
+      $("m-clock").classList.remove("hidden");
+      $("timer").classList.remove("hidden");
+    } else {
+      sc.classList.toggle("hidden", session.length === 0);
+      sc.innerHTML = "正解 <b>" + session.filter(s => s.ok).length + "</b>";
+      $("m-clock").classList.add("hidden");
+      $("timer").classList.add("hidden");
+    }
     $("rule-fill").style.width = (idx / list.length * 100) + "%";
 
+    qStart = Date.now();
+    startTimer();
     quizDock();
     window.scrollTo(0, 0);
   }
@@ -1330,53 +1522,38 @@
     quit.type = "button";
     quit.className = "btn ghost";
     quit.textContent = "中断";
-    quit.addEventListener("click", () => { if (confirm("演習を中断してホームに戻りますか？")) toHome(); });
+    quit.addEventListener("click", () => {
+      if (confirm("演習を中断してホームに戻りますか？")) { stopTimer(); toHome(); }
+    });
 
     const main = document.createElement("button");
     main.type = "button";
     main.className = "btn";
     if (!answered) {
-      main.textContent = "解答する";
+      const last = idx + 1 === list.length;
+      main.textContent = mode === "exam" ? (last ? "解答して結果へ" : "解答して次へ") : "解答する";
       main.disabled = picked === null;
-      main.addEventListener("click", grade);
+      main.addEventListener("click", () => commit(picked));
     } else {
       main.textContent = idx + 1 < list.length ? "次の問題へ" : "結果を見る";
-      main.addEventListener("click", () => {
-        if (idx + 1 < list.length) { idx++; renderQ(); } else { finish(); }
-      });
+      main.addEventListener("click", next);
     }
     dockInner.appendChild(quit);
     dockInner.appendChild(main);
   }
 
-  function grade() {
+  function next() {
+    if (idx + 1 < list.length) { idx++; renderQ(); } else { finish(); }
+  }
+
+  /* val: 0〜4 = 選択肢 / UNKNOWN = わからない / TIMEUP = 時間切れ */
+  function commit(val) {
+    if (answered) return;
     const q = list[idx];
     answered = true;
-    const ok = picked === q.a;
-
-    const box = $("q-choices");
-    [...box.children].forEach((c, i) => {
-      c.disabled = true;
-      c.setAttribute("aria-pressed", "false");
-      if (i === q.a) {
-        c.classList.add("is-ok");
-        c.insertAdjacentHTML("beforeend", '<span class="mark">✓</span>');
-      } else if (i === picked) {
-        c.classList.add("is-ng");
-        c.insertAdjacentHTML("beforeend", '<span class="mark">✕</span>');
-      }
-    });
-
-    const v = document.createElement("div");
-    v.className = "verdict " + (ok ? "ok" : "ng");
-    v.innerHTML =
-      '<div class="verdict-head">' + (ok ? "✓ 正解" : "✕ 不正解　正解は " + KEYS[q.a]) + "</div>" +
-      '<div class="verdict-body">' +
-        '<span class="exp-label">解説</span>' +
-        "<p>" + q.e + "</p>" +
-        (q.calc ? '<div class="calc">' + q.calc + "</div>" : "") +
-      "</div>";
-    $("q-verdict").appendChild(v);
+    stopTimer();
+    const ok = val === q.a;
+    const ms = Date.now() - qStart;
 
     const s = rec.stats[q.cat] || (rec.stats[q.cat] = { correct: 0, total: 0 });
     s.total++;
@@ -1388,30 +1565,91 @@
     }
     save();
 
-    session.push({ q: q, ok: ok, picked: picked });
-    const nCor = session.filter(x => x.ok).length;
-    const sc = $("m-score");
-    sc.classList.remove("hidden");
-    sc.innerHTML = "正解 <b>" + nCor + "</b>";
+    session.push({ q: q, ok: ok, picked: val, ms: ms });
     $("rule-fill").style.width = ((idx + 1) / list.length * 100) + "%";
 
+    if (mode === "exam") { next(); return; }
+    showVerdict(q, val, ok);
+
+    const sc = $("m-score");
+    sc.classList.remove("hidden");
+    sc.innerHTML = "正解 <b>" + session.filter(x => x.ok).length + "</b>";
     quizDock();
+  }
+
+  function showVerdict(q, val, ok) {
+    const box = $("q-choices");
+    [...box.children].forEach(c => {
+      const v = Number(c.dataset.val);
+      c.disabled = true;
+      c.setAttribute("aria-pressed", "false");
+      if (v === q.a) {
+        c.classList.add("is-ok");
+        c.insertAdjacentHTML("beforeend", '<span class="mark">✓</span>');
+      } else if (v === val && val === UNKNOWN) {
+        c.classList.add("is-na");
+        c.insertAdjacentHTML("beforeend", '<span class="mark">—</span>');
+      } else if (v === val) {
+        c.classList.add("is-ng");
+        c.insertAdjacentHTML("beforeend", '<span class="mark">✕</span>');
+      }
+    });
+
+    const head = ok ? "✓ 正解"
+      : val === UNKNOWN ? "— わからない　正解は " + KEYS[q.a]
+      : "✕ 不正解　正解は " + KEYS[q.a];
+    const v = document.createElement("div");
+    v.className = "verdict " + (ok ? "ok" : val === UNKNOWN ? "na" : "ng");
+    v.innerHTML =
+      '<div class="verdict-head">' + head + "</div>" +
+      '<div class="verdict-body">' +
+        '<span class="exp-label">解説</span>' +
+        "<p>" + q.e + "</p>" +
+        (q.calc ? '<div class="calc">' + q.calc + "</div>" : "") +
+      "</div>";
+    $("q-verdict").appendChild(v);
     v.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 
   /* ══ 結果 ══════════════════════════════════════════ */
   function finish() {
+    stopTimer();
+    $("m-clock").classList.add("hidden");
+    $("timer").classList.add("hidden");
+
     const n = session.length;
     const cor = session.filter(s => s.ok).length;
+    const unk = session.filter(s => s.picked === UNKNOWN).length;
+    const tmo = session.filter(s => s.picked === TIMEUP).length;
+    const wrongPick = n - cor - unk - tmo;
     const p = Math.round(cor / n * 100);
+    const total = Date.now() - sessionStart;
+    const avg = session.reduce((a, s) => a + s.ms, 0) / n;
 
     $("res-score").innerHTML = cor + '<small> / ' + n + " 問正解</small>";
     $("res-comment").textContent =
-      p === 100 ? "全問正解。この分野はもう仕上がっています。" :
-      p >= 80   ? "安定して解けています。まちがえた型だけ押さえ直しましょう。" :
-      p >= 60   ? "解法は入っています。取りこぼした分野を重点的に。" :
-      p >= 40   ? "解き方の型がまだ定着していません。解説の式を追い直しましょう。" :
-                  "まずは1分野ずつ。解説の計算を書き写すところから始めましょう。";
+      unk >= n / 2   ? "まだ手が出ない問題が多い状態です。「わからない」を選んだ分野の解説から埋めていきましょう。" :
+      p === 100      ? "全問正解。この分野はもう仕上がっています。" :
+      p >= 80 && unk ? "解ける型は安定しています。あとは「わからない」で飛ばした型を潰すだけです。" :
+      p >= 80        ? "安定して解けています。まちがえた型だけ押さえ直しましょう。" :
+      p >= 60        ? "解法は入っています。取りこぼした分野を重点的に。" :
+      p >= 40        ? "解き方の型がまだ定着していません。解説の式を追い直しましょう。" :
+                       "まずは1分野ずつ。解説の計算を書き写すところから始めましょう。";
+
+    const cells = [
+      ["正解", cor, "ok"],
+      ["まちがい", wrongPick, "ng"],
+      ["わからない", unk, "na"],
+      [mode === "exam" ? "時間切れ" : "所要時間", mode === "exam" ? tmo : null, ""]
+    ];
+    $("res-tally").innerHTML = cells.map(([label, val, cls]) =>
+      '<div><span class="t-label">' + label + '</span><span class="t-val ' + cls + '">' +
+      (val === null ? fmt(total) : val + '<small> 問</small>') + "</span></div>"
+    ).join("") +
+      '<div style="grid-column:1/-1"><span class="t-label">' +
+      (mode === "exam" ? "所要時間 / 1問平均" : "1問あたりの平均") + '</span><span class="t-val">' +
+      (mode === "exam" ? fmt(total) + ' <small>/ ' + Math.round(avg / 1000) + '秒</small>'
+                       : Math.round(avg / 1000) + '<small> 秒</small>') + "</span></div>";
 
     const byCat = {};
     session.forEach(s => {
@@ -1435,18 +1673,31 @@
     });
 
     const wrongs = session.filter(s => !s.ok);
-    $("res-review-block").classList.toggle("hidden", wrongs.length === 0);
+    // 本番モードは解説を出していないので全問、練習モードはまちがえた問題だけ振り返る
+    const shown = mode === "exam" ? session : wrongs;
+    $("res-review-label").textContent = mode === "exam" ? "全問の解説" : "まちがえた問題";
+    $("res-review-block").classList.toggle("hidden", shown.length === 0);
     const rw = $("res-review");
     rw.innerHTML = "";
-    wrongs.forEach(s => {
+    shown.forEach(s => {
       const d = document.createElement("div");
       d.className = "review-item";
       const plain = s.q.q.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+      const badge = s.ok ? '<span class="badge ok">✓</span>'
+        : s.picked === UNKNOWN || s.picked === TIMEUP ? '<span class="badge na">—</span>'
+        : '<span class="badge ng">✕</span>';
+      const mine = s.picked === UNKNOWN ? "<em>わからない</em>"
+        : s.picked === TIMEUP ? "<em>時間切れ</em>"
+        : KEYS[s.picked] + ". " + s.q.c[s.picked];
       d.innerHTML =
-        '<span class="qtag" style="margin:0">' + CAT_NAME[s.q.cat] + "</span>" +
+        badge + '<span class="qtag" style="margin:0">' + CAT_NAME[s.q.cat] + "</span>" +
         '<p class="rq">' + (plain.length > 70 ? plain.slice(0, 70) + "…" : plain) + "</p>" +
-        '<p class="ra">あなたの解答：' + KEYS[s.picked] + "　／　正解：<b>" +
-          KEYS[s.q.a] + ". " + s.q.c[s.q.a] + "</b></p>";
+        '<p class="ra">あなたの解答：' + mine + "　／　正解：<b>" +
+          KEYS[s.q.a] + ". " + s.q.c[s.q.a] + "</b></p>" +
+        (mode === "exam"
+          ? "<details><summary>解説</summary><p class=\"exp\">" + s.q.e + "</p>" +
+            (s.q.calc ? '<div class="calc">' + s.q.calc + "</div>" : "") + "</details>"
+          : "");
       rw.appendChild(d);
     });
 
@@ -1481,8 +1732,11 @@
   }
 
   function toHome() {
+    stopTimer();
     $("rule-fill").style.width = "0%";
     $("m-score").classList.add("hidden");
+    $("m-clock").classList.add("hidden");
+    $("timer").classList.add("hidden");
     renderRecord();
     show("home");
     homeDock();

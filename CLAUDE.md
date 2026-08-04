@@ -26,7 +26,7 @@ app.py  →  tools/<tool>.py  →  utils/gemini_client.generate()  →  Gemini A
 
 ## Standalone pages
 
-`spi_nonverbal.html` — SPI非言語の練習問題集。Streamlit アプリとは独立した単一ファイルの静的ページで、ブラウザで直接開いて使う（スマートフォン向けレイアウト）。問題データは末尾の `<script>` 内の `Q` 配列に `{id, cat, q, c, a, e, calc}` 形式で定義されている。分野は同ファイル冒頭の `CATS` に定義。学習記録は `localStorage` の `spi-nonverbal-v1` に保存される。外部 CSS/JS/フォントは読み込まない。
+`spi_nonverbal.html` — SPI非言語の練習問題集。Streamlit アプリとは独立した単一ファイルの静的ページで、ブラウザで直接開いて使う（スマートフォン向けレイアウト）。問題データは末尾の `<script>` 内の `Q` 配列に `{id, cat, q, c, a, e, calc}` 形式で定義されている。分野は同ファイル冒頭の `CATS` に定義。選択肢は `c` の5つに加えて「わからない」が常に自動で追加される（内部値 `UNKNOWN = -1`、本番モードの時間切れは `TIMEUP = -2`）。練習モード（時間制限なし・1問ごとに解説）と本番モード（1問ごとの制限時間・解説は結果画面にまとめて表示）を `mode` で切り替える。学習記録は `localStorage` の `spi-nonverbal-v1` に保存される。外部 CSS/JS/フォントは読み込まない。
 
 ## Adding a new tool
 
