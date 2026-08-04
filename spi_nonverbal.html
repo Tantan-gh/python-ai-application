@@ -156,6 +156,41 @@
   .clock.warn { color: var(--na); }
   .clock.crit { color: var(--ng); font-weight: 700; }
 
+  .flag {
+    font-family: var(--mono);
+    font-size: .68rem;
+    letter-spacing: .1em;
+    color: var(--na);
+    background: var(--na-bg);
+    border-radius: 4px;
+    padding: .1rem .4rem;
+  }
+
+  /* 直近3回の正否 */
+  .hist { display: inline-flex; align-items: center; gap: .28rem; }
+  .hist .hist-label {
+    font-family: var(--mono);
+    font-size: .66rem;
+    letter-spacing: .12em;
+    color: var(--ink-3);
+    margin-right: .15rem;
+  }
+  .hist i {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    display: block;
+    border: 1px solid var(--line);
+  }
+  .hist i.o { background: var(--ok); border-color: var(--ok); }
+  .hist i.x { background: var(--ng); border-color: var(--ng); }
+  .hist i.u { background: var(--na); border-color: var(--na); }
+  .hist i.none { background: transparent; }
+  .verdict-head .hist { margin-left: auto; }
+  /* 判定バーは正誤で色がつくので、ドットに地色のふちをつけて分離する */
+  .verdict-head .hist i { box-shadow: 0 0 0 1.5px var(--surface); }
+  .verdict-head .hist .hist-label { color: currentColor; opacity: .7; }
+  .review-item .hist { margin-top: .35rem; }
+
   .theme-btn {
     border: 1px solid var(--line);
     background: var(--surface);
@@ -625,6 +660,7 @@
         <span id="m-count">全60問</span>
         <span id="m-score" class="hidden"></span>
         <span id="m-clock" class="clock hidden"></span>
+        <span id="m-review" class="flag hidden">復習</span>
         <button class="theme-btn" id="theme" type="button" aria-label="表示テーマを切り替える">
           <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
             <circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/>
@@ -730,6 +766,7 @@
         <p class="eyebrow">今回の成績</p>
         <p class="score" id="res-score"></p>
         <p class="comment" id="res-comment"></p>
+        <p class="lede hidden" id="res-note" style="font-size:.8rem; margin-top:.7rem"></p>
       </div>
     </section>
 
@@ -1233,7 +1270,8 @@
 
   /* ══ 保存データ ════════════════════════════════════ */
   const STORE = "spi-nonverbal-v1";
-  let rec = { stats: {}, wrong: [] };
+  const HIST_MAX = 3;
+  let rec = { stats: {}, wrong: [], hist: {} };
   try {
     const raw = localStorage.getItem(STORE);
     if (raw) {
@@ -1241,12 +1279,28 @@
       if (p && typeof p === "object") {
         rec.stats = p.stats || {};
         rec.wrong = Array.isArray(p.wrong) ? p.wrong : [];
+        rec.hist = (p.hist && typeof p.hist === "object") ? p.hist : {};
       }
     }
   } catch (err) { /* 保存が使えない環境ではその場だけの記録になる */ }
 
   function save() {
     try { localStorage.setItem(STORE, JSON.stringify(rec)); } catch (err) {}
+  }
+
+  /* 直近 HIST_MAX 回の正否。o=正解 / x=まちがい / u=わからない */
+  function pushHist(id, mark) {
+    const h = rec.hist[id] || (rec.hist[id] = []);
+    h.push(mark);
+    while (h.length > HIST_MAX) h.shift();
+  }
+
+  function histHTML(id) {
+    const h = rec.hist[id] || [];
+    if (!h.length) return "";
+    const slots = Array(HIST_MAX - h.length).fill("none").concat(h);
+    return '<span class="hist"><span class="hist-label">直近' + HIST_MAX + '回</span>' +
+      slots.map(m => '<i class="' + m + '"></i>').join("") + "</span>";
   }
 
   /* ══ 状態 ══════════════════════════════════════════ */
@@ -1262,6 +1316,7 @@
   let picked = null;
   let answered = false;
   let session = [];
+  let reviewMode = false;    // 復習セッション（正答率に加算しない）
   let qStart = 0;
   let sessionStart = 0;
   let ticker = null;
@@ -1382,12 +1437,12 @@
   $("btn-wrong").addEventListener("click", () => {
     const ids = new Set(rec.wrong);
     const l = Q.filter(q => ids.has(q.id));
-    if (l.length) start(shuffle(l));
+    if (l.length) start(shuffle(l), true);
   });
 
   $("btn-reset").addEventListener("click", () => {
     if (!confirm("学習記録をすべて消去します。よろしいですか？")) return;
-    rec = { stats: {}, wrong: [] };
+    rec = { stats: {}, wrong: [], hist: {} };
     save();
     renderRecord();
   });
@@ -1412,7 +1467,7 @@
     b.addEventListener("click", () => {
       const p = shuffle(pool());
       const take = quizLen === 0 ? p.length : Math.min(quizLen, p.length);
-      if (take) start(p.slice(0, take));
+      if (take) start(p.slice(0, take), false);
     });
     dockInner.appendChild(b);
     dock.classList.remove("hidden");
@@ -1456,8 +1511,9 @@
     if (left <= 0) { stopTimer(); commit(TIMEUP); }
   }
 
-  function start(l) {
+  function start(l, isReview) {
     list = l; idx = 0; session = [];
+    reviewMode = !!isReview;
     sessionStart = Date.now();
     show("quiz");
     renderQ();
@@ -1497,6 +1553,7 @@
     makeChoice(UNKNOWN, "?", "わからない", "unknown");
 
     $("m-count").textContent = (idx + 1) + " / " + list.length;
+    $("m-review").classList.toggle("hidden", !reviewMode);
     const sc = $("m-score");
     if (mode === "exam") {
       sc.classList.add("hidden");
@@ -1555,13 +1612,20 @@
     const ok = val === q.a;
     const ms = Date.now() - qStart;
 
-    const s = rec.stats[q.cat] || (rec.stats[q.cat] = { correct: 0, total: 0 });
-    s.total++;
+    // 解き直し（復習セッション）は累計の正答率に加算しない
+    if (!reviewMode) {
+      const s = rec.stats[q.cat] || (rec.stats[q.cat] = { correct: 0, total: 0 });
+      s.total++;
+      if (ok) s.correct++;
+    }
     if (ok) {
-      s.correct++;
       rec.wrong = rec.wrong.filter(id => id !== q.id);
     } else if (!rec.wrong.includes(q.id)) {
       rec.wrong.push(q.id);
+    }
+    // 直近の正否は練習モードでのみ記録する
+    if (mode === "practice") {
+      pushHist(q.id, ok ? "o" : val === UNKNOWN ? "u" : "x");
     }
     save();
 
@@ -1601,7 +1665,7 @@
     const v = document.createElement("div");
     v.className = "verdict " + (ok ? "ok" : val === UNKNOWN ? "na" : "ng");
     v.innerHTML =
-      '<div class="verdict-head">' + head + "</div>" +
+      '<div class="verdict-head">' + head + histHTML(q.id) + "</div>" +
       '<div class="verdict-body">' +
         '<span class="exp-label">解説</span>' +
         "<p>" + q.e + "</p>" +
@@ -1635,6 +1699,14 @@
       p >= 60        ? "解法は入っています。取りこぼした分野を重点的に。" :
       p >= 40        ? "解き方の型がまだ定着していません。解説の式を追い直しましょう。" :
                        "まずは1分野ずつ。解説の計算を書き写すところから始めましょう。";
+
+    const note = $("res-note");
+    note.classList.toggle("hidden", !reviewMode);
+    if (reviewMode) {
+      note.textContent = "解き直しのため、この結果は学習記録の正答率には加算していません。"
+        + (mode === "practice" ? "正解した問題は復習リストから外れ、直近の正否には記録されます。"
+                               : "正解した問題は復習リストから外れます。");
+    }
 
     const cells = [
       ["正解", cor, "ok"],
@@ -1694,6 +1766,7 @@
         '<p class="rq">' + (plain.length > 70 ? plain.slice(0, 70) + "…" : plain) + "</p>" +
         '<p class="ra">あなたの解答：' + mine + "　／　正解：<b>" +
           KEYS[s.q.a] + ". " + s.q.c[s.q.a] + "</b></p>" +
+        (mode === "practice" ? histHTML(s.q.id) : "") +
         (mode === "exam"
           ? "<details><summary>解説</summary><p class=\"exp\">" + s.q.e + "</p>" +
             (s.q.calc ? '<div class="calc">' + s.q.calc + "</div>" : "") + "</details>"
@@ -1711,13 +1784,13 @@
     again.className = "btn";
     if (wrongs.length) {
       again.textContent = "まちがえた " + wrongs.length + " 問を解き直す";
-      again.addEventListener("click", () => start(shuffle(wrongs.map(s => s.q))));
+      again.addEventListener("click", () => start(shuffle(wrongs.map(s => s.q)), true));
     } else {
       again.textContent = "もう一度おなじ設定で";
       again.addEventListener("click", () => {
         const p2 = shuffle(pool());
         const take = quizLen === 0 ? p2.length : Math.min(quizLen, p2.length);
-        if (take) start(p2.slice(0, take));
+        if (take) start(p2.slice(0, take), false);
       });
     }
     const home = document.createElement("button");
@@ -1736,7 +1809,9 @@
     $("rule-fill").style.width = "0%";
     $("m-score").classList.add("hidden");
     $("m-clock").classList.add("hidden");
+    $("m-review").classList.add("hidden");
     $("timer").classList.add("hidden");
+    reviewMode = false;
     renderRecord();
     show("home");
     homeDock();
