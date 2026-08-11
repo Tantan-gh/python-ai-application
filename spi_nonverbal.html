@@ -21,6 +21,7 @@
     --na-bg:     #F5EDD9;
     --grid:      rgba(34, 55, 111, .07);
     --on-accent: #FFFFFF;
+    --scrim:     rgba(15, 23, 40, .48);
     --shadow:    0 1px 2px rgba(22, 35, 60, .05), 0 8px 24px -16px rgba(22, 35, 60, .35);
 
     --mincho: "Hiragino Mincho ProN", "HiraMinProN-W3", "Yu Mincho", YuMincho, "Noto Serif JP", "Songti SC", serif;
@@ -51,6 +52,7 @@
       --na-bg:     #2B2413;
       --grid:      rgba(143, 174, 232, .08);
       --on-accent: #0E1420;
+      --scrim:     rgba(0, 0, 0, .62);
       --shadow:    0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px -16px rgba(0, 0, 0, .8);
       color-scheme: dark;
     }
@@ -63,7 +65,7 @@
     --accent:#22376F; --accent-2:#3D5FA8; --accent-bg:#E5EAF5;
     --ok:#1B7A5A; --ok-bg:#E3F1EB; --ng:#B23A2E; --ng-bg:#F7E5E2;
     --na:#8A6A16; --na-bg:#F5EDD9;
-    --grid:rgba(34,55,111,.07); --on-accent:#FFFFFF;
+    --grid:rgba(34,55,111,.07); --on-accent:#FFFFFF; --scrim:rgba(15,23,40,.48);
     --shadow:0 1px 2px rgba(22,35,60,.05), 0 8px 24px -16px rgba(22,35,60,.35);
     color-scheme: light;
   }
@@ -75,7 +77,7 @@
     --accent:#8FAEE8; --accent-2:#A8C0EF; --accent-bg:#1E2A42;
     --ok:#4FBF95; --ok-bg:#122C25; --ng:#E4816F; --ng-bg:#2E1A17;
     --na:#D9B75C; --na-bg:#2B2413;
-    --grid:rgba(143,174,232,.08); --on-accent:#0E1420;
+    --grid:rgba(143,174,232,.08); --on-accent:#0E1420; --scrim:rgba(0,0,0,.62);
     --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -16px rgba(0,0,0,.8);
     color-scheme: dark;
   }
@@ -552,6 +554,36 @@
 
   .hidden { display: none !important; }
 
+  /* ── 確認シート ─────────────────────────
+     掲載先の iframe は sandbox 下で confirm() が無視されるため、
+     ネイティブダイアログではなくページ内で確認する。 */
+  .sheet { position: fixed; inset: 0; z-index: 60; }
+  .sheet-back { position: absolute; inset: 0; background: var(--scrim); }
+  .sheet-card {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    max-width: 42rem;
+    margin: 0 auto;
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+    border-radius: 16px 16px 0 0;
+    padding: 1.2rem 1rem calc(1.1rem + env(safe-area-inset-bottom));
+    box-shadow: 0 -8px 32px -12px rgba(0, 0, 0, .45);
+    animation: sheet-up .2s ease-out;
+  }
+  @keyframes sheet-up { from { transform: translateY(14px); opacity: 0; } to { transform: none; opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .sheet-card { animation: none; } }
+  .sheet-title {
+    font-family: var(--mincho);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 .35rem;
+  }
+  .sheet-msg { margin: 0 0 1.1rem; font-size: .9rem; color: var(--ink-2); }
+  .sheet-actions { display: flex; gap: .6rem; }
+  .sheet-actions .btn { flex: 1; }
+  .btn.danger { background: var(--ng); border-color: var(--ng); color: var(--on-accent); }
+
   /* ── 結果 ───────────────────────────────── */
   .result-hero {
     text-align: center;
@@ -789,6 +821,18 @@
 
 <div class="dock hidden" id="dock">
   <div class="dock-inner" id="dock-inner"></div>
+</div>
+
+<div class="sheet hidden" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+  <div class="sheet-back" id="sheet-back"></div>
+  <div class="sheet-card">
+    <p class="sheet-title" id="sheet-title"></p>
+    <p class="sheet-msg" id="sheet-msg"></p>
+    <div class="sheet-actions">
+      <button class="btn ghost" type="button" id="sheet-cancel">キャンセル</button>
+      <button class="btn" type="button" id="sheet-ok"></button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -1271,6 +1315,12 @@
   /* ══ 保存データ ════════════════════════════════════ */
   const STORE = "spi-nonverbal-v1";
   const HIST_MAX = 3;
+  let storageOK = true;
+  try {
+    localStorage.setItem(STORE + "-probe", "1");
+    localStorage.removeItem(STORE + "-probe");
+  } catch (err) { storageOK = false; }
+
   let rec = { stats: {}, wrong: [], hist: {} };
   try {
     const raw = localStorage.getItem(STORE);
@@ -1330,6 +1380,43 @@
     Object.entries(screens).forEach(([k, el]) => el.classList.toggle("hidden", k !== name));
     window.scrollTo(0, 0);
   }
+
+  /* ══ 確認シート ════════════════════════════════════ */
+  const sheet = $("sheet");
+  let sheetOpts = null;
+  let sheetOpener = null;
+
+  function ask(opts) {
+    sheetOpts = opts;
+    sheetOpener = document.activeElement;
+    $("sheet-title").textContent = opts.title;
+    $("sheet-msg").textContent = opts.msg;
+    const ok = $("sheet-ok");
+    ok.textContent = opts.ok;
+    ok.className = "btn" + (opts.danger ? " danger" : "");
+    sheet.classList.remove("hidden");
+    ok.focus();
+  }
+
+  function closeSheet(cancelled) {
+    const opts = sheetOpts;
+    sheet.classList.add("hidden");
+    sheetOpts = null;
+    if (sheetOpener && sheetOpener.focus) sheetOpener.focus();
+    sheetOpener = null;
+    if (cancelled && opts && opts.onCancel) opts.onCancel();
+  }
+
+  $("sheet-ok").addEventListener("click", () => {
+    const run = sheetOpts && sheetOpts.onYes;
+    closeSheet(false);
+    if (run) run();
+  });
+  $("sheet-cancel").addEventListener("click", () => closeSheet(true));
+  $("sheet-back").addEventListener("click", () => closeSheet(true));
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && !sheet.classList.contains("hidden")) closeSheet(true);
+  });
 
   /* ══ テーマ切り替え ════════════════════════════════ */
   $("theme").addEventListener("click", () => {
@@ -1426,6 +1513,11 @@
     if (!rows.children.length) {
       rows.innerHTML = '<p class="lede" style="font-size:.85rem;margin:0">解いた分野がここに並びます。</p>';
     }
+    if (!storageOK) {
+      rows.insertAdjacentHTML("beforeend",
+        '<p class="lede" style="font-size:.8rem;margin:.6rem 0 0;color:var(--na)">' +
+        "このブラウザでは保存が使えないため、記録はこの画面を閉じるまでの一時的なものになります。</p>");
+    }
 
     const bw = $("btn-wrong");
     const n = rec.wrong.length;
@@ -1441,10 +1533,17 @@
   });
 
   $("btn-reset").addEventListener("click", () => {
-    if (!confirm("学習記録をすべて消去します。よろしいですか？")) return;
-    rec = { stats: {}, wrong: [], hist: {} };
-    save();
-    renderRecord();
+    ask({
+      title: "学習記録を消去しますか",
+      msg: "分野別の正答率、復習リスト、直近3回の正否をすべて消します。元に戻せません。",
+      ok: "消去する",
+      danger: true,
+      onYes: () => {
+        rec = { stats: {}, wrong: [], hist: {} };
+        save();
+        renderRecord();
+      }
+    });
   });
 
   function updateHomeDock() {
@@ -1580,7 +1679,21 @@
     quit.className = "btn ghost";
     quit.textContent = "中断";
     quit.addEventListener("click", () => {
-      if (confirm("演習を中断してホームに戻りますか？")) { stopTimer(); toHome(); }
+      // 確認中はタイマーを止め、取り消したら残り時間から再開する
+      const left = limitSec * 1000 - (Date.now() - qStart);
+      stopTimer();
+      ask({
+        title: "演習を中断しますか",
+        msg: "ここまでの解答は記録に残ります。解答前のこの問題は記録されません。",
+        ok: "中断してホームへ",
+        onYes: toHome,
+        onCancel: () => {
+          if (mode === "exam" && !answered) {
+            qStart = Date.now() - (limitSec * 1000 - left);
+            startTimer();
+          }
+        }
+      });
     });
 
     const main = document.createElement("button");
