@@ -381,16 +381,16 @@
     margin-left: .35rem;
     vertical-align: middle;
   }
-  .dtag .lv { display: inline-flex; gap: 2px; }
-  .dtag .lv i {
+  .lv { display: inline-flex; gap: 2px; }
+  .lv i {
     width: 3px; height: 9px;
     border-radius: 1px;
     background: var(--line);
     display: block;
   }
-  .dtag.d1 .lv i:nth-child(-n+1),
-  .dtag.d2 .lv i:nth-child(-n+2),
-  .dtag.d3 .lv i:nth-child(-n+3) { background: var(--accent); }
+  .d1 > .lv i:nth-child(-n+1),
+  .d2 > .lv i:nth-child(-n+2),
+  .d3 > .lv i:nth-child(-n+3) { background: var(--accent); }
 
   .qcard {
     background:
@@ -756,9 +756,6 @@
       <p class="eyebrow" id="home-eyebrow"></p>
       <h2 class="head">分野を選んで、<span style="white-space:nowrap">10問</span>から始める。</h2>
       <p class="lede">まちがえた問題は自動で記録され、あとから復習できます。あてずっぽうで当たっても力にならないので、迷ったら「わからない」を選んでください。</p>
-      <p class="lede" style="margin-top:.7rem; display:flex; flex-wrap:wrap; align-items:center; gap:.35rem; font-size:.82rem">
-        <span>各問に難易度がつきます</span><span id="diff-legend"></span>
-      </p>
     </section>
 
     <section class="block">
@@ -788,6 +785,11 @@
         <button class="chip" type="button" id="cat-all">すべて選ぶ</button>
         <button class="chip" type="button" id="cat-none">すべて外す</button>
       </div>
+    </section>
+
+    <section class="block">
+      <p class="block-label">難易度</p>
+      <div class="seg" id="diff-chips"></div>
     </section>
 
     <section class="block">
@@ -1635,6 +1637,7 @@
   const TIMEUP  = -2;   // 時間切れ（本番モード）
 
   let selectedCats = new Set(CATS.map(c => c[0]));
+  let selectedDiffs = new Set([1, 2, 3]);
   let quizLen = 10;
   let mode = "practice";     // "practice" | "exam"
   let limitSec = 75;
@@ -1705,33 +1708,64 @@
   });
 
   /* ══ ホーム ════════════════════════════════════════ */
-  function countFor(cat) { return Q.filter(q => q.cat === cat).length; }
+  /* 件数は相手側の絞り込みを反映する（分野は選択中の難易度で、難易度は選択中の分野で数える） */
+  function countCat(cat) { return Q.filter(q => q.cat === cat && selectedDiffs.has(q.d)).length; }
+  function countDiff(d)  { return Q.filter(q => q.d === d && selectedCats.has(q.cat)).length; }
 
-  function renderChips() {
-    const wrap = $("cat-chips");
-    wrap.innerHTML = "";
+  /* チップは起動時に一度だけ組み、以後は件数と選択状態だけを書きかえる
+     （作り直すと、押したチップからフォーカスが外れてしまうため） */
+  const catChips = [], diffChips = [];
+
+  function buildChips() {
+    const cw = $("cat-chips");
     CATS.forEach(([key, label]) => {
       const b = document.createElement("button");
       b.type = "button";
       b.className = "chip";
-      b.setAttribute("aria-pressed", selectedCats.has(key));
-      b.innerHTML = label + ' <span class="n">' + countFor(key) + "</span>";
+      b.innerHTML = label + ' <span class="n"></span>';
       b.addEventListener("click", () => {
         if (selectedCats.has(key)) selectedCats.delete(key); else selectedCats.add(key);
-        b.setAttribute("aria-pressed", selectedCats.has(key));
-        updateHomeDock();
+        refreshFilters();
       });
-      wrap.appendChild(b);
+      cw.appendChild(b);
+      catChips.push({ key: key, el: b });
     });
+
+    const dw = $("diff-chips");
+    [1, 2, 3].forEach(d => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "chip d" + d;
+      b.innerHTML = '<span class="lv"><i></i><i></i><i></i></span>' + DIFF[d] +
+        ' <span class="n"></span>';
+      b.addEventListener("click", () => {
+        if (selectedDiffs.has(d)) selectedDiffs.delete(d); else selectedDiffs.add(d);
+        refreshFilters();
+      });
+      dw.appendChild(b);
+      diffChips.push({ d: d, el: b });
+    });
+  }
+
+  function refreshFilters() {
+    catChips.forEach(c => {
+      c.el.setAttribute("aria-pressed", selectedCats.has(c.key));
+      c.el.querySelector(".n").textContent = countCat(c.key);
+    });
+    diffChips.forEach(c => {
+      c.el.setAttribute("aria-pressed", selectedDiffs.has(c.d));
+      c.el.querySelector(".n").textContent = countDiff(c.d);
+    });
+    updateHomeDock();
   }
 
   $("cat-all").addEventListener("click", () => {
     selectedCats = new Set(CATS.map(c => c[0]));
-    renderChips(); updateHomeDock();
+    refreshFilters();
   });
   $("cat-none").addEventListener("click", () => {
     selectedCats = new Set();
-    renderChips(); updateHomeDock();
+    refreshFilters();
   });
 
   $("mode-seg").addEventListener("click", e => {
@@ -1761,7 +1795,7 @@
     updateHomeDock();
   });
 
-  function pool() { return Q.filter(q => selectedCats.has(q.cat)); }
+  function pool() { return Q.filter(q => selectedCats.has(q.cat) && selectedDiffs.has(q.d)); }
 
   function renderRecord() {
     let tot = 0, cor = 0;
@@ -1829,9 +1863,12 @@
     const btn = dockInner.querySelector(".btn");
     if (!btn) return;
     btn.disabled = n === 0;
-    btn.textContent = n === 0
-      ? "分野を1つ以上選んでください"
-      : (mode === "exam" ? "本番モードで" + take + "問" : take + "問を始める");
+    btn.textContent =
+      selectedCats.size === 0  ? "分野を1つ以上選んでください" :
+      selectedDiffs.size === 0 ? "難易度を1つ以上選んでください" :
+      n === 0                  ? "この組み合わせの問題はありません" :
+      mode === "exam"          ? "本番モードで" + take + "問" :
+                                 take + "問を始める";
     $("m-count").textContent = "全" + Q.length + "問";
   }
 
@@ -2213,11 +2250,9 @@
 
   /* ══ 起動 ══════════════════════════════════════════ */
   $("home-eyebrow").textContent = "非言語 · " + CATS.length + "分野 · " + Q.length + "問";
-  $("diff-legend").innerHTML = [1, 2, 3].map(d =>
-    diffHTML(d) + '<span style="font-size:.78rem;color:var(--ink-3)">' +
-    Q.filter(q => q.d === d).length + "問</span>").join("");
-  renderChips();
+  buildChips();
   renderRecord();
   homeDock();
+  refreshFilters();
 })();
 </script>
